@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Передача радиограммы</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        button { margin: 5px; }
+        #output { white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Передача радиограммы на слух</h1>
+
+    <div>
+        <p><strong>Ваш ID:</strong> <span id="userIdDisplay"></span></p>
+    </div>
+
+    <div>
+        <label for="recipientId">ID получателя:</label>
+        <input type="text" id="recipientId" value="user_1">
+        <button id="dot">Точка (.)</button>
+        <button id="dash">Тире (-)</button>
+        <button id="play">Воспроизвести</button>
+        <button id="sendSignal">Отправить радиограмму</button>
+    </div>
+    
+    <div id="output"></div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
