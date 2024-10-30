@@ -1,13 +1,13 @@
-const WebSocket = require('ws'); 
+import WebSocket from 'ws';
 
 const clients = {};
 
-function registerClient(id, ws) {
+export function registerClient(id, ws) {
   clients[id] = ws;
   console.log(`Client registered: ${id}`);
 }
 
-function sendMessage(recipient, content) {
+export function sendMessage(recipient, content) {
   const recipientWs = clients[recipient];
   if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
     recipientWs.send(content);
@@ -15,5 +15,3 @@ function sendMessage(recipient, content) {
     console.log(`Recipient ${recipient} not found or not ready.`);
   }
 }
-
-module.exports = { registerClient, sendMessage };

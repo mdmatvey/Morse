@@ -1,6 +1,6 @@
-const { registerClient, sendMessage } = require('../services/websocketService');
+import { registerClient, sendMessage } from '../services/websocketService.js';
 
-function handleConnection(ws, wss) {
+export function handleConnection(ws, wss) {
   console.log('Client connected');
 
   // Идентификация клиента
@@ -19,5 +19,3 @@ function handleConnection(ws, wss) {
     console.log('Client disconnected');
   });
 }
-
-module.exports = { handleConnection };
