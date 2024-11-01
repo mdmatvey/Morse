@@ -5,6 +5,7 @@ const dotButton = document.getElementById('dot');
 const dashButton = document.getElementById('dash');
 const playButton = document.getElementById('play');
 const sendSignalButton = document.getElementById('sendSignal');
+const deleteButton = document.getElementById('delete');  // Кнопка для удаления символа
 const output = document.getElementById('output');
 
 const userId = `user_${Math.floor(Math.random() * 1000)}`;
@@ -44,6 +45,17 @@ sendSignalButton.addEventListener('click', () => {
         });
         ws.send(message);
         output.textContent += `\nSent: ${morseSequence}`;
+    }
+});
+
+// Новая функция для удаления последнего символа
+deleteButton.addEventListener('click', () => {
+    output.textContent = output.textContent.slice(0, -1);
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Backspace') {
+        output.textContent = output.textContent.slice(0, -1);
     }
 });
 

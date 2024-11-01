@@ -22,7 +22,7 @@ function createWindow() {
         slashes: true,
     }));
 
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(createWindow);
