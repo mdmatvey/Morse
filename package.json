@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "electron .",
+    "start": "nodemon --watch . --exec 'electron .'",
     "build": "electron-builder"
   },
   "build": {
@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "electron": "^33.0.2",
-    "electron-builder": "^24.13.3"
+    "electron-builder": "^24.13.3",
+    "nodemon": "^3.1.7"
   }
 }
