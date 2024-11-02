@@ -8,6 +8,13 @@
         body { font-family: Arial, sans-serif; }
         button { margin: 5px; }
         #output { white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
+        .morse-input { width: 100px; margin: 5px; } /* Ширина инпутов */
+        #inputContainer { 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); /* 5 столбцов */
+            gap: 10px; /* Промежутки между элементами */
+            margin-top: 10px; 
+        }
     </style>
 </head>
 <body>
@@ -27,6 +34,20 @@
         <button id="sendSignal">Отправить радиограмму</button>
     </div>
     
+    <div>
+        <label for="groupCount">Количество групп:</label>
+        <select id="groupCount">
+            <option value="2">2</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="30">30</option>
+        </select>
+    </div>
+
+    <div id="inputContainer">
+        <!-- Инпуты будут созданы динамически -->
+    </div>
+
     <div id="output"></div>
 
     <script type="module" src="js/main.js"></script>
