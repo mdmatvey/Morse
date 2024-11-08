@@ -1,9 +1,10 @@
-import { registerClient, sendMessage } from '../services/websocketService.js';
+// express/controllers/signalController.js
+import { registerClient, unregisterClient, sendMessage, clients } from '../services/websocketService.js';  // Import clients
 
 export function handleConnection(ws, wss) {
   console.log('Client connected');
 
-  // Идентификация клиента
+  // Handle client messages
   ws.on('message', (message) => {
     const parsedMessage = JSON.parse(message);
     const { type, id, recipient, content } = parsedMessage;
@@ -17,5 +18,12 @@ export function handleConnection(ws, wss) {
 
   ws.on('close', () => {
     console.log('Client disconnected');
+    // Unregister client on disconnect
+    for (let id in clients) {
+      if (clients[id] === ws) {
+        unregisterClient(id);
+        break;
+      }
+    }
   });
 }

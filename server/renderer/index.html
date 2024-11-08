@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Electron App</title>
+</head>
+<body>
+  <h1>Electron Server Control</h1>
+  <button id="startServer">Start Server</button>
+  <button id="stopServer">Stop Server</button>
+
+  <h2>Connected Users</h2>
+  <ul id="userList"></ul>
+
+  <script>
+    const { ipcRenderer } = require('electron'); // Access ipcRenderer directly
+
+    document.getElementById('startServer').addEventListener('click', () => {
+      ipcRenderer.send('start-server'); // Send 'start-server' message to main process
+    });
+
+    document.getElementById('stopServer').addEventListener('click', () => {
+      ipcRenderer.send('stop-server'); // Send 'stop-server' message to main process
+    });
+
+    // Listen for the user list from the main process and update the UI
+    ipcRenderer.on('user-list', (event, users) => {
+      const userList = document.getElementById('userList');
+      userList.innerHTML = ''; // Clear existing list
+      users.forEach((user) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = user;
+        userList.appendChild(listItem);
+      });
+    });
+  </script>
+</body>
+</html>

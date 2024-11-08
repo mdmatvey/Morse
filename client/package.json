@@ -1,11 +1,10 @@
 {
-  "name": "morse",
+  "name": "morse-client",
   "version": "1.0.0",
-  "description": "Morse Code Application",
-  "main": "index.js",
+  "description": "Morse Code Client",
   "type": "module",
   "scripts": {
-    "start": "nodemon --watch . --exec 'electron .'",
+    "start": "electron .",
     "build": "electron-builder"
   },
   "build": {
@@ -24,7 +23,15 @@
       "icon": "path/to/icon.icns"
     },
     "win": {
-      "target": "nsis",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"  
+          ]
+        }
+      ],
       "icon": "path/to/icon.ico"
     },
     "linux": {
@@ -41,7 +48,6 @@
   },
   "devDependencies": {
     "electron": "^33.0.2",
-    "electron-builder": "^24.13.3",
-    "nodemon": "^3.1.7"
+    "electron-builder": "^24.13.3"
   }
 }
