@@ -10,8 +10,8 @@ let serverProcess; // To hold the server process instance
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1920,
+    height: 1080,
     webPreferences: {
       nodeIntegration: true, // Enable nodeIntegration (not recommended for production)
       contextIsolation: false, // Disable contextIsolation (not recommended for production)
@@ -61,5 +61,6 @@ ipcMain.on('stop-server', () => {
   if (serverProcess) {
     serverProcess.kill(); // Stop the server process
     serverProcess = null;
+    console.log('Server is stopped')
   }
 });

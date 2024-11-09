@@ -5,50 +5,138 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Передача радиограммы</title>
     <style>
-        body { font-family: Arial, sans-serif; }
-        button { margin: 5px; }
-        #output { white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
-        .morse-input { width: 100px; margin: 5px; } /* Ширина инпутов */
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #f4f4f9; 
+            margin: 0; 
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        h1 { 
+            color: #333; 
+            margin-bottom: 20px; 
+            text-align: center;
+        }
+        p {
+            color: #555;
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            padding: 8px;
+            margin-bottom: 10px;
+            width: 100%;
+            max-width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #output { 
+            white-space: pre-wrap; 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            margin-top: 10px; 
+            background-color: #fff;
+            flex-grow: 0; /* Make sure the output area doesn't stretch */
+        }
+        .morse-input { 
+            width: 100px; 
+            margin: 5px; 
+            padding: 5px;
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+        }
         #inputContainer { 
             display: grid; 
-            grid-template-columns: repeat(5, 1fr); /* 5 столбцов */
-            gap: 10px; /* Промежутки между элементами */
-            margin-top: 10px; 
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 10px; 
+            margin: 20px 0; 
+            max-height: 30vh; /* Scales based on viewport height */
+            overflow-y: auto;  /* Enable vertical scrolling */
+            padding-right: 10px; /* To prevent the scrollbar from covering content */
+        }
+        #inputContainer input {
+            width: 90%; /* Full width for the grid inputs */
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-grow: 1;  /* Ensures that this area grows to take available space */
+        }
+        .output-container {
+            margin-top: auto; /* Pushes output to the bottom */
         }
     </style>
 </head>
 <body>
-    <h1>Передача радиограммы на слух</h1>
+    <div class="main-content">
+        <h1>Передача радиограммы на слух</h1>
 
-    <div>
-        <p><strong>Ваш ID:</strong> <span id="userIdDisplay"></span></p>
-    </div>
+        <div>
+            <p><strong>Ваш ID:</strong> <span id="userIdDisplay"></span></p>
+        </div>
 
-    <div>
-        <label for="recipientId">ID получателя:</label>
-        <input type="text" id="recipientId" value="user_1">
-        <button id="dot">Точка (.)</button>
-        <button id="dash">Тире (-)</button>
-        <button id="delete">Удалить</button>
-        <button id="play">Воспроизвести</button>
-        <button id="sendSignal">Отправить радиограмму</button>
-    </div>
-    
-    <div>
-        <label for="groupCount">Количество групп:</label>
-        <select id="groupCount">
-            <option value="2">2</option>
-            <option value="10">10</option>
-            <option value="20">20</option>
-            <option value="30">30</option>
-        </select>
-    </div>
+        <div class="container">
+            <label for="recipientId">ID получателя:</label>
+            <input type="text" id="recipientId" value="user_1">
+            
+            <div>
+                <button id="dot">Точка (.)</button>
+                <button id="dash">Тире (-)</button>
+                <button id="delete">Удалить</button>
+                <button id="play">Воспроизвести</button>
+                <button id="sendSignal">Отправить радиограмму</button>
+            </div>
+        </div>
 
-    <div id="inputContainer">
-        <!-- Инпуты будут созданы динамически -->
-    </div>
+        <div class="container">
+            <label for="groupCount">Количество групп:</label>
+            <select id="groupCount">
+                <option value="2">2</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+            </select>
+        </div>
 
-    <div id="output"></div>
+        <div id="inputContainer">
+            <!-- Инпуты будут созданы динамически -->
+        </div>
+
+        <div class="output-container">
+            <div id="output"></div>
+        </div>
+    </div>
 
     <script type="module" src="js/main.js"></script>
 </body>
