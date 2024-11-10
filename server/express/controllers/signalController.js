@@ -1,4 +1,3 @@
-// express/controllers/signalController.js
 import { registerClient, unregisterClient, sendMessage, clients } from '../services/websocketService.js';  // Import clients
 
 export function handleConnection(ws, wss) {

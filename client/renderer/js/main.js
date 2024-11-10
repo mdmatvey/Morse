@@ -1,12 +1,14 @@
-import { setupWebSocket } from './websocket.js';
 import { playMorseSequence } from './morse.js';
 
-const dotButton = document.getElementById('dot');
-const dashButton = document.getElementById('dash');
-const playButton = document.getElementById('play');
+// const dotButton = document.getElementById('dot');
+// const dashButton = document.getElementById('dash');
+// const playButton = document.getElementById('play');
+// const deleteButton = document.getElementById('delete');
 const sendSignalButton = document.getElementById('sendSignal');
-const deleteButton = document.getElementById('delete');
 const output = document.getElementById('output');
+const serverAddressInput = document.getElementById('serverAddress');
+const connectServerButton = document.getElementById('connectServer');
+const connectionStatus = document.getElementById('connectionStatus');
 
 const userId = `user_${Math.floor(Math.random() * 1000)}`;
 const userIdDisplay = document.getElementById('userIdDisplay');
@@ -19,19 +21,43 @@ recipientIdInput.addEventListener('input', () => {
     recipientId = recipientIdInput.value;
 });
 
-const ws = setupWebSocket(userId, recipientId, output, playMorseSequence);
+let ws;
 
-dotButton.addEventListener('click', () => {
-    output.textContent += '.';
+connectServerButton.addEventListener('click', () => {
+    const serverAddress = `ws://${serverAddressInput.value}`;
+
+    ws = new WebSocket(serverAddress);
+
+    ws.onopen = () => {
+        connectionStatus.textContent = 'подключено';
+        connectionStatus.className = 'success';
+        const registerMessage = JSON.stringify({ type: 'register', id: userId });
+        ws.send(registerMessage);
+    };
+
+    ws.onmessage = (event) => {
+        const receivedCode = event.data; // Получаем данные как текст
+        output.textContent += `\nReceived: ${receivedCode}`;
+        playMorseSequence(receivedCode); // Воспроизводим сигнал
+    };
+
+    ws.onerror = () => {
+        connectionStatus.textContent = `ошибка`;
+        connectionStatus.className = 'error';
+    };
 });
 
-dashButton.addEventListener('click', () => {
-    output.textContent += '-';
-});
+// dotButton.addEventListener('click', () => {
+//     output.textContent += '.';
+// });
 
-playButton.addEventListener('click', () => {
-    playMorseSequence(output.textContent);
-});
+// dashButton.addEventListener('click', () => {
+//     output.textContent += '-';
+// });
+
+// playButton.addEventListener('click', () => {
+//     playMorseSequence(output.textContent);
+// });
 
 sendSignalButton.addEventListener('click', () => {
     const morseCode = getMorseCodeFromInputs(); // Получаем код Морзе из инпутов
@@ -64,9 +90,9 @@ sendSignalButton.addEventListener('click', () => {
 });
 
 // Удаляем последний символ из вывода
-deleteButton.addEventListener('click', () => {
-    output.textContent = output.textContent.slice(0, -1);
-});
+// deleteButton.addEventListener('click', () => {
+//     output.textContent = output.textContent.slice(0, -1);
+// });
 
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Backspace') {
@@ -156,7 +182,6 @@ function createInputs(groupCount) {
         inputContainer.appendChild(inputWrapper);
     }
 }
-
 
 // Функция для перехода к следующему инпуту
 function focusNextInput(event) {

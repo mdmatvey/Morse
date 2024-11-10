@@ -1,33 +1,46 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <title>Передача радиограммы</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Передача радиограммы</title>
+    <link rel="stylesheet" href="../../shared/styles.css">
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            background-color: #f4f4f9; 
-            margin: 0; 
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
             height: 100vh;
         }
-        h1 { 
-            color: #333; 
-            margin-bottom: 20px; 
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            height: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
             text-align: center;
         }
+
         p {
             color: #555;
             text-align: center;
         }
+
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
+
         input, select {
             padding: 8px;
             margin-bottom: 10px;
@@ -37,6 +50,7 @@
             border-radius: 4px;
             font-size: 14px;
         }
+
         button {
             padding: 10px 20px;
             margin: 5px;
@@ -47,54 +61,86 @@
             cursor: pointer;
             font-size: 14px;
         }
+
         button:hover {
             background-color: #45a049;
         }
+
         button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
         }
-        #output { 
-            white-space: pre-wrap; 
-            border: 1px solid #ccc; 
-            padding: 10px; 
-            margin-top: 10px; 
-            background-color: #fff;
-            flex-grow: 0; /* Make sure the output area doesn't stretch */
+
+        /* Контейнер для трех строк */
+        .three-row-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Пространство между строками */
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
         }
-        .morse-input { 
-            width: 100px; 
-            margin: 5px; 
-            padding: 5px;
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
+
+        /* Контейнер для первой строки с двумя колонками */
+        .first-row-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
         }
-        #inputContainer { 
-            display: grid; 
-            grid-template-columns: repeat(5, 1fr); 
-            gap: 10px; 
-            margin: 20px 0; 
-            max-height: 30vh; /* Scales based on viewport height */
-            overflow-y: auto;  /* Enable vertical scrolling */
-            padding-right: 10px; /* To prevent the scrollbar from covering content */
-        }
-        #inputContainer input {
-            width: 90%; /* Full width for the grid inputs */
-        }
-        .container {
+
+        .first-row-container div {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 20px;
         }
-        .main-content {
+
+        #output {
+            white-space: pre-wrap;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #fff;
+            max-height: 150px;
+            overflow-y: auto;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        #inputContainer {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            max-height: 30vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        #inputContainer input {
+            width: 90%;
+        }
+
+        .container {
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            flex-grow: 1;  /* Ensures that this area grows to take available space */
+            flex-direction: row;
+            align-items: center;
+            margin-top: 10px;
         }
+
         .output-container {
-            margin-top: auto; /* Pushes output to the bottom */
+            flex-grow: 1;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .success {
+            color: #155724;
+        }
+
+        .error {
+            color: #721c24;
         }
     </style>
 </head>
@@ -102,36 +148,47 @@
     <div class="main-content">
         <h1>Передача радиограммы на слух</h1>
 
-        <div>
-            <p><strong>Ваш ID:</strong> <span id="userIdDisplay"></span></p>
-        </div>
+        <div class="three-row-container">
+            <!-- Первая строка: два столбца -->
+            <div class="first-row-container">
+                <div>
+                    <p><strong>Ваш ID:</strong> <span id="userIdDisplay"></span></p>
+                    <label for="recipientId">ID получателя:</label>
+                    <input type="text" id="recipientId" value="user_1">
+                </div>
+                <div>
+                    <p><strong>Соединение:</strong> <span id="connectionStatus" class="notification">не подключено</span></p>
+                    <label for="serverAddress">Адрес сервера:</label>
+                    <input type="text" id="serverAddress" placeholder="Адрес сервера" value="192.168.0.1">
+                </div>
+            </div>
 
-        <div class="container">
-            <label for="recipientId">ID получателя:</label>
-            <input type="text" id="recipientId" value="user_1">
-            
+            <!-- Вторая строка: кнопка для подключения -->
             <div>
-                <button id="dot">Точка (.)</button>
-                <button id="dash">Тире (-)</button>
-                <button id="delete">Удалить</button>
-                <button id="play">Воспроизвести</button>
-                <button id="sendSignal">Отправить радиограмму</button>
+                <button id="connectServer" class="blue-button" style="width: 100%;">Подключиться</button>
+            </div>
+
+            <!-- Третья строка: селектор количества групп -->
+            <div style="flex-direction: column;">
+                <label for="groupCount">Количество групп:</label>
+                <select id="groupCount">
+                    <option value="2">2</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                </select>
+            <button id="sendSignal">Отправить радиограмму</button>
             </div>
         </div>
 
-        <div class="container">
-            <label for="groupCount">Количество групп:</label>
-            <select id="groupCount">
-                <option value="2">2</option>
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="30">30</option>
-            </select>
-        </div>
+        <!-- <div class="container">
+            <button id="dot">Точка (.)</button>
+            <button id="dash">Тире (-)</button>
+            <button id="delete">Удалить</button>
+            <button id="play">Воспроизвести</button>
+        </div> -->
 
-        <div id="inputContainer">
-            <!-- Инпуты будут созданы динамически -->
-        </div>
+        <div id="inputContainer"></div>
 
         <div class="output-container">
             <div id="output"></div>

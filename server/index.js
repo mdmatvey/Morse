@@ -10,8 +10,8 @@ let serverProcess; // To hold the server process instance
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1920,
-    height: 1080,
+    width: 800,
+    height: 600,
     webPreferences: {
       nodeIntegration: true, // Enable nodeIntegration (not recommended for production)
       contextIsolation: false, // Disable contextIsolation (not recommended for production)
@@ -19,6 +19,8 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
+
+  // mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {

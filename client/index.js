@@ -7,8 +7,8 @@ const __dirname = path.dirname(__filename);
 
 function createWindow() {
     const mainWindow = new BrowserWindow({
-        width: 1920,
-        height: 1080,
+        width: 800,
+        height: 600,
         webPreferences: {
             preload: path.join(__dirname, 'renderer/js/preload.mjs'), // Путь к preload.js
             contextIsolation: true, // Включите изоляцию контекста

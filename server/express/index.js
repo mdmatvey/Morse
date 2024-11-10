@@ -14,7 +14,7 @@ app.use(express.static(path.join(process.cwd(), 'renderer/js')));
 // Handle WebSocket connections
 wss.on('connection', (ws) => handleConnection(ws, wss));
 
-// Start the server on port 3000
-server.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000');
+// Start the server on port 1337
+server.listen(1337, () => {
+  console.log('Server is running on http://localhost:1337');
 });
