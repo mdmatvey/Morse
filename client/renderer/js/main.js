@@ -10,7 +10,7 @@ const serverAddressInput = document.getElementById('serverAddress');
 const connectServerButton = document.getElementById('connectServer');
 const connectionStatus = document.getElementById('connectionStatus');
 
-const userId = `user_${Math.floor(Math.random() * 1000)}`;
+const userId = `Студент-${Math.floor(Math.random() * 1000)}`;
 const userIdDisplay = document.getElementById('userIdDisplay');
 userIdDisplay.textContent = userId;
 
