@@ -1,9 +1,10 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
+import url from 'url';
 import { fork } from 'child_process';
 
-// Workaround for __dirname in ES modules
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __filename = url.fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let mainWindow;
 let serverProcess; // To hold the server process instance
