@@ -147,8 +147,19 @@
                 <div>
                     <p><strong>Соединение:</strong> <span id="connectionStatus" class="notification">не подключено</span></p>
                     <label for="serverAddress">Адрес сервера:</label>
-                    <input type="text" id="serverAddress" placeholder="Адрес сервера" value="192.168.0.1">
+                    <input type="text" id="serverAddress" placeholder="Адрес сервера" value="192.168.0.">
                 </div>
+            </div>
+            
+            <div style="display: flex; flex-direction: row; justify-content: space-evenly; align-items: center;">
+                <label for="speedSelector">Скорость:</label>
+                <select id="speedSelector">
+                    <option value="4">4 гр./мин</option>
+                    <option value="6">6 гр./мин</option>
+                    <option value="8">8 гр./мин</option>
+                    <option value="10">10 гр./мин</option>
+                    <option value="12">12 гр./мин</option>
+                </select>
             </div>
 
             <!-- Вторая строка: кнопка для подключения -->

@@ -1,4 +1,5 @@
 import { playMorseSequence } from './morse.js';
+import { setSpeed } from './consts.js';
 
 const sendSignalButton = document.getElementById('sendSignal');
 const serverAddressInput = document.getElementById('serverAddress');
@@ -54,7 +55,7 @@ sendSignalButton.addEventListener('click', () => {
     }
     
     if (morseCode) {
-        const morseSequence = convertToMorse(morseCode);
+        const morseSequence = convertToMorseWithTimings(morseCode);
         const message = JSON.stringify({
             type: 'message',
             id: userId,
@@ -70,15 +71,33 @@ sendSignalButton.addEventListener('click', () => {
     }
 });
 
-function convertToMorse(text) {
+function convertToMorseWithTimings(text) {
     const morseCodeMap = {
         'а': '.-', 'б': '-...', 'в': '.--', 'г': '--.', 'д': '-..', 'е': '.', 'ё': '.', 'ж': '...-', 'з': '--..',
         'и': '..', 'й': '.---', 'к': '-.-', 'л': '.-..', 'м': '--', 'н': '-.', 'о': '---', 'п': '.--.', 'р': '.-.',
         'с': '...', 'т': '-', 'у': '..-', 'ф': '..-.', 'х': '....', 'ц': '-.-.', 'ч': '---.', 'ш': '----',
         'щ': '--.-', 'ъ': '.--.-.', 'ы': '-.--', 'ь': '-..-', 'э': '..-..', 'ю': '..--', 'я': '.-.-'
     };
-    return text.split('').map(char => morseCodeMap[char] || '').join(' ');
+
+    return text
+        .trim()
+        .toLowerCase()
+        .split(' ') // Разделяем текст на слова
+        .map(word =>
+            word.split('').map(char => morseCodeMap[char] || '').join(' ') // Преобразуем буквы в Морзе
+        )
+        .join(' / '); // Разделение слов через "/"
 }
+
+// Инициализация скорости
+const speedSelector = document.getElementById('speedSelector');
+speedSelector.addEventListener('change', (event) => {
+    const selectedSpeed = parseInt(event.target.value, 10);
+    setSpeed(selectedSpeed);
+});
+
+// Устанавливаем начальную скорость
+setSpeed(parseInt(speedSelector.value, 10));
 
 function getMorseCodeFromInputs() {
     let morseCode = '';
