@@ -59,10 +59,19 @@ ipcMain.on('start-server', () => {
   }
 });
 
-ipcMain.on('stop-server', () => {
+const stopServer = (message) => {
   if (serverProcess) {
     serverProcess.kill(); // Stop the server process
     serverProcess = null;
-    console.log('Server is stopped')
+
+    console.log(message)
   }
+}
+
+ipcMain.on('stop-server', () => {
+  stopServer('Server is stopped');
+});
+
+app.on('before-quit', () => {
+  stopServer('Server stopped before quitting application');
 });
