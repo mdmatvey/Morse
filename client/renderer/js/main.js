@@ -6,15 +6,18 @@ const serverAddressInput = document.getElementById('serverAddress');
 const connectServerButton = document.getElementById('connectServer');
 const connectionStatus = document.getElementById('connectionStatus');
 
-const userId = `Студент-${Math.floor(Math.random() * 1000)}`;
+// Переменная для хранения уникального ID
+let userId = '';
+
 const userIdDisplay = document.getElementById('userIdDisplay');
-userIdDisplay.textContent = userId;
+userIdDisplay.textContent = 'Не подключен';  // По умолчанию текст
 
 const recipientIdInput = document.getElementById('recipientId');
 let recipientId = recipientIdInput.value;
 
 recipientIdInput.addEventListener('input', () => {
-    recipientId = recipientIdInput.value;
+    const match = recipientIdInput.value.match(/\d+/);  // Ищем первое число в строке
+    recipientId = match ? match[0] : '';  // Если число найдено, то присваиваем его, иначе оставляем пустое значение
 });
 
 let ws;
@@ -27,13 +30,33 @@ connectServerButton.addEventListener('click', () => {
     ws.onopen = () => {
         connectionStatus.textContent = 'подключено';
         connectionStatus.className = 'success';
+
+        // Отключаем кнопку "Подключиться" после установления соединения
+        connectServerButton.disabled = true;
+        connectServerButton.style.backgroundColor = '#cccccc';  // Изменяем цвет, чтобы визуально показать, что кнопка недоступна
+
         const registerMessage = JSON.stringify({ type: 'register', id: userId });
         ws.send(registerMessage);
     };
 
     ws.onmessage = (event) => {
-        const receivedCode = event.data; // Получаем данные как текст
-        playMorseSequence(receivedCode); // Воспроизводим сигнал
+        try {
+            const receivedData = JSON.parse(event.data);
+
+            // Если это сообщение с ID пользователя, сохраняем его
+            if (receivedData.type === 'user-id') {
+                userId = receivedData.id;
+                userIdDisplay.textContent = `Студент-${userId}`;  // Отображаем ID на странице
+            }
+
+            // Если это сигнал в формате Морзе
+            if (receivedData.type === 'message') {
+                playMorseSequence(receivedData.content); // Воспроизводим сигнал
+            }
+        } catch (e) {
+            // Если данные не JSON, предполагаем, что это просто строка с сообщением Морзе
+            playMorseSequence(event.data); // Воспроизводим сигнал Морзе
+        }
     };
 
     ws.onerror = () => {

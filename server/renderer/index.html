@@ -119,9 +119,9 @@
     ipcRenderer.on('user-list', (event, users) => {
       const userList = document.getElementById('userList');
       userList.innerHTML = ''; // Clear existing list
-      users.forEach((user) => {
+      users.forEach((userId) => {
         const listItem = document.createElement('li');
-        listItem.textContent = user;
+        listItem.textContent = `Студент-${userId}`;
         userList.appendChild(listItem);
       });
     });

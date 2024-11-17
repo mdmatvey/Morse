@@ -12,7 +12,7 @@ export function registerClient(id, ws) {
 
 export function unregisterClient(id) {
   delete clients[id];
-  const index = connectedUsers.indexOf(id);
+  const index = connectedUsers.indexOf(Number(id));
   if (index !== -1) {
     connectedUsers.splice(index, 1); // Remove the client from the list of connected users
     console.log(`Client unregistered: ${id}`);
