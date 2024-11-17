@@ -13,13 +13,23 @@ const MORSE_TIMINGS = {
     '/': () => DOT_DURATION * INTER_WORD_PAUSE_MULTIPLIER,
 };
 
+// Инициализация AudioContext только один раз
+let audioContext = null;
+
+function getAudioContext() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioContext;
+}
+
 // Воспроизведение одного звука
 function playMorseSound(duration) {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
+    const context = getAudioContext();
+    const oscillator = context.createOscillator();
     oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(600, audioContext.currentTime); // Частота 600 Гц
-    oscillator.connect(audioContext.destination);
+    oscillator.frequency.setValueAtTime(600, context.currentTime); // Частота 600 Гц
+    oscillator.connect(context.destination);
     oscillator.start();
     setTimeout(() => oscillator.stop(), duration);
 }
@@ -41,4 +51,12 @@ export function playMorseSequence(sequence) {
             delay += DOT_DURATION * INTRA_LETTER_PAUSE_MULTIPLIER;
         }
     });
+}
+
+// Закрытие AudioContext при завершении
+export function cleanupAudioContext() {
+    if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+    }
 }
