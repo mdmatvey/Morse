@@ -82,6 +82,19 @@ const morseCodeMap = {
     'щ': '--.-', 'ъ': '.--.-.', 'ы': '-.--', 'ь': '-..-', 'э': '..-..', 'ю': '..--', 'я': '.-.-'
 };
 
+const morseCodeNumbers = {
+    '0': '-----',
+    '1': '.----',
+    '2': '..---',
+    '3': '...--',
+    '4': '....-',
+    '5': '.....',
+    '6': '-....',
+    '7': '--...',
+    '8': '---..',
+    '9': '----.'
+};
+
 const additionalMorseSymbols = {
     '–': '-...-'
 };
@@ -89,6 +102,7 @@ const additionalMorseSymbols = {
 // Конкатенация основного и нового алфавита
 const fullMorseCodeMap = {
     ...morseCodeMap, // Основной алфавит
+    ...morseCodeNumbers,
     ...additionalMorseSymbols // Новый алфавит
 };
 
@@ -152,15 +166,15 @@ function createInputs(groupCount) {
         tooltip.style.borderRadius = '4px';
         tooltip.style.fontSize = '12px';
         tooltip.style.display = 'none'; // Изначально скрыт
-        tooltip.textContent = 'Допускаются только кириллические символы.';
+        tooltip.textContent = 'Допускаются только кириллические символы и цифры.';
 
         let timeoutId; // Переменная для хранения ID таймаута
 
-        // Добавляем обработчик для проверки на кириллицу
+        // Добавляем обработчик для проверки на кириллицу и цифры
         input.addEventListener('input', () => {
             const value = input.value;
-            if (/[^а-яё]/i.test(value)) { // Проверка на наличие некириллических символов
-                input.value = value.replace(/[^а-яё]/gi, ''); // Удаляем недопустимые символы
+            if (/[^а-яё0-9]/i.test(value)) { // Проверка на наличие некириллических и нецифровых символов
+                input.value = value.replace(/[^а-яё0-9]/gi, ''); // Удаляем недопустимые символы
                 tooltip.style.display = 'block'; // Показываем tooltip
 
                 // Если таймаут уже установлен, очищаем его
@@ -193,26 +207,18 @@ function focusNextInput(event) {
 
     // Проверяем, нажата ли клавиша пробела
     if (event.code === 'Space') {
-        event.preventDefault(); // Предотвращаем действие по умолчанию (прокрутка страницы)
+        event.preventDefault(); // Предотвращаем стандартное поведение пробела
 
-        // Находим индекс текущего инпута и переходим к следующему
+        // Переход к следующему инпуту
         const currentIndex = Array.from(inputs).indexOf(currentInput);
-        if (currentIndex > -1 && currentIndex < inputs.length - 1) {
-            inputs[currentIndex + 1].focus(); // Переходим к следующему инпуту
+        if (currentIndex < inputs.length - 1) {
+            inputs[currentIndex + 1].focus(); // Фокус на следующий инпут
         }
     }
 }
 
-// Обработчик события изменения количества групп
-document.getElementById('groupCount').addEventListener('change', (event) => {
-    const groupCount = parseInt(event.target.value);
-    createInputs(groupCount);
-});
-
-// Добавляем обработчик события нажатия клавиш
+// Добавляем слушатель события для перехода на следующий инпут
 document.addEventListener('keydown', focusNextInput);
 
-// Инициализируем инпуты при загрузке
-document.addEventListener('DOMContentLoaded', () => {
-    createInputs(2); // По умолчанию 2 группы
-});
+// Инициализация инпутов
+createInputs(2);
