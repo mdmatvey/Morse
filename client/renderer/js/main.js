@@ -1,11 +1,6 @@
 import { playMorseSequence } from './morse.js';
 
-// const dotButton = document.getElementById('dot');
-// const dashButton = document.getElementById('dash');
-// const playButton = document.getElementById('play');
-// const deleteButton = document.getElementById('delete');
 const sendSignalButton = document.getElementById('sendSignal');
-const output = document.getElementById('output');
 const serverAddressInput = document.getElementById('serverAddress');
 const connectServerButton = document.getElementById('connectServer');
 const connectionStatus = document.getElementById('connectionStatus');
@@ -37,7 +32,6 @@ connectServerButton.addEventListener('click', () => {
 
     ws.onmessage = (event) => {
         const receivedCode = event.data; // Получаем данные как текст
-        output.textContent += `\nReceived: ${receivedCode}`;
         playMorseSequence(receivedCode); // Воспроизводим сигнал
     };
 
@@ -46,18 +40,6 @@ connectServerButton.addEventListener('click', () => {
         connectionStatus.className = 'error';
     };
 });
-
-// dotButton.addEventListener('click', () => {
-//     output.textContent += '.';
-// });
-
-// dashButton.addEventListener('click', () => {
-//     output.textContent += '-';
-// });
-
-// playButton.addEventListener('click', () => {
-//     playMorseSequence(output.textContent);
-// });
 
 sendSignalButton.addEventListener('click', () => {
     const morseCode = getMorseCodeFromInputs(); // Получаем код Морзе из инпутов
@@ -80,23 +62,11 @@ sendSignalButton.addEventListener('click', () => {
             content: morseSequence
         });
         ws.send(message);
-        output.textContent += `\nSent: ${morseSequence}`;
         
         // Очищаем все инпуты после отправки
         inputs.forEach(input => {
             input.value = ''; // Устанавливаем значение инпута в пустую строку
         });
-    }
-});
-
-// Удаляем последний символ из вывода
-// deleteButton.addEventListener('click', () => {
-//     output.textContent = output.textContent.slice(0, -1);
-// });
-
-document.addEventListener('keydown', (event) => {
-    if (event.key === 'Backspace') {
-        output.textContent = output.textContent.slice(0, -1);
     }
 });
 
