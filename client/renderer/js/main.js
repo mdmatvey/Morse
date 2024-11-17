@@ -44,7 +44,7 @@ connectServerButton.addEventListener('click', () => {
 
 sendSignalButton.addEventListener('click', () => {
     const morseCode = getMorseCodeFromInputs(); // Получаем код Морзе из инпутов
-    
+
     // Проверка длины всех групп
     const inputs = document.querySelectorAll('.morse-input');
     for (const input of inputs) {
@@ -53,17 +53,21 @@ sendSignalButton.addEventListener('click', () => {
             return; // Останавливаем отправку, если условие не выполнено
         }
     }
-    
+
     if (morseCode) {
-        const morseSequence = convertToMorseWithTimings(morseCode);
+        // Добавляем «ЖЖЖ –» в начало и «К» в конец
+        const modifiedCode = `ЖЖЖ– ${morseCode} К`;
+
+        const morseSequence = convertToMorseWithTimings(modifiedCode); // Преобразование в Морзе
         const message = JSON.stringify({
             type: 'message',
             id: userId,
             recipient: recipientId,
             content: morseSequence
         });
+
         ws.send(message);
-        
+
         // Очищаем все инпуты после отправки
         inputs.forEach(input => {
             input.value = ''; // Устанавливаем значение инпута в пустую строку
@@ -71,20 +75,30 @@ sendSignalButton.addEventListener('click', () => {
     }
 });
 
-function convertToMorseWithTimings(text) {
-    const morseCodeMap = {
-        'а': '.-', 'б': '-...', 'в': '.--', 'г': '--.', 'д': '-..', 'е': '.', 'ё': '.', 'ж': '...-', 'з': '--..',
-        'и': '..', 'й': '.---', 'к': '-.-', 'л': '.-..', 'м': '--', 'н': '-.', 'о': '---', 'п': '.--.', 'р': '.-.',
-        'с': '...', 'т': '-', 'у': '..-', 'ф': '..-.', 'х': '....', 'ц': '-.-.', 'ч': '---.', 'ш': '----',
-        'щ': '--.-', 'ъ': '.--.-.', 'ы': '-.--', 'ь': '-..-', 'э': '..-..', 'ю': '..--', 'я': '.-.-'
-    };
+const morseCodeMap = {
+    'а': '.-', 'б': '-...', 'в': '.--', 'г': '--.', 'д': '-..', 'е': '.', 'ё': '.', 'ж': '...-', 'з': '--..',
+    'и': '..', 'й': '.---', 'к': '-.-', 'л': '.-..', 'м': '--', 'н': '-.', 'о': '---', 'п': '.--.', 'р': '.-.',
+    'с': '...', 'т': '-', 'у': '..-', 'ф': '..-.', 'х': '....', 'ц': '-.-.', 'ч': '---.', 'ш': '----',
+    'щ': '--.-', 'ъ': '.--.-.', 'ы': '-.--', 'ь': '-..-', 'э': '..-..', 'ю': '..--', 'я': '.-.-'
+};
 
+const additionalMorseSymbols = {
+    '–': '-...-'
+};
+
+// Конкатенация основного и нового алфавита
+const fullMorseCodeMap = {
+    ...morseCodeMap, // Основной алфавит
+    ...additionalMorseSymbols // Новый алфавит
+};
+
+function convertToMorseWithTimings(text) {
     return text
         .trim()
         .toLowerCase()
         .split(' ') // Разделяем текст на слова
         .map(word =>
-            word.split('').map(char => morseCodeMap[char] || '').join(' ') // Преобразуем буквы в Морзе
+            word.split('').map(char => fullMorseCodeMap[char] || '').join(' ') // Преобразуем буквы в Морзе
         )
         .join(' / '); // Разделение слов через "/"
 }

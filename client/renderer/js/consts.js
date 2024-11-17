@@ -8,5 +8,5 @@ export const INTER_WORD_PAUSE_MULTIPLIER = 7;
 
 export function setSpeed(speedGroupsPerMinute) {
     // Расчет длительности точки: 1200 / групп в минуту
-    DOT_DURATION = Math.round(700 / speedGroupsPerMinute);
+    DOT_DURATION = Math.round(750 / speedGroupsPerMinute);
 }
