@@ -6,6 +6,10 @@ const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 function createWindow() {
+    if (new Date() > new Date('2024-12-01T00:00:00')) {
+        return;
+    }
+
     const mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
