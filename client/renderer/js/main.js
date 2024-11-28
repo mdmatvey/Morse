@@ -1,5 +1,5 @@
 import { playMorseSequence } from './morse.js';
-import { setSpeed } from './consts.js';
+import { TO_MORSE_DICT, FROM_MORSE_DICT, MESSAGE_PREFIX, MESSAGE_POSTFIX, setSpeed } from './consts.js';
 
 const sendSignalButton = document.getElementById('sendSignal');
 const serverAddressInput = document.getElementById('serverAddress');
@@ -39,6 +39,35 @@ connectServerButton.addEventListener('click', () => {
         ws.send(registerMessage);
     };
 
+    /* logging */
+        // Функция для обрезки префикса и постфикса
+        function trimMessage(message) {
+            if (message.startsWith(MESSAGE_PREFIX)) {
+                message = message.slice(MESSAGE_PREFIX.length);
+            }
+            if (message.endsWith(MESSAGE_POSTFIX)) {
+                message = message.slice(0, -MESSAGE_POSTFIX.length);
+            }
+
+            return message;
+        }
+
+        // Функция для декодирования Морзе в текст
+        function decodeMorse(morseSequence) {
+            return morseSequence
+                .trim()
+                .split(' ') // Разделяем на отдельные коды Морзе
+                .map(code => FROM_MORSE_DICT[code] || '') // Декодируем каждый символ
+                .join(''); // Соединяем в текст
+        }
+
+        // Функция для разделения текста на группы по 5 символов
+        function groupByFiveCharacters(text) {
+            return text.match(/.{1,5}/g)?.join(' ') || '';
+        }
+    /* logging */
+
+    // Обработчик входящих сообщений
     ws.onmessage = (event) => {
         try {
             const receivedData = JSON.parse(event.data);
@@ -49,13 +78,38 @@ connectServerButton.addEventListener('click', () => {
                 userIdDisplay.textContent = `Студент-${userId}`;  // Отображаем ID на странице
             }
 
-            // Если это сигнал в формате Морзе
             if (receivedData.type === 'message') {
-                playMorseSequence(receivedData.content); // Воспроизводим сигнал
+                let morseSequence = receivedData.content;
+
+                /* logging */
+                    // Декодируем сообщение из Морзе
+                    const decodedMessage = decodeMorse(morseSequence);
+                    // Очищаем строку Морзе от лишних символов
+                    const trimmedMessage = trimMessage(decodedMessage);
+                    // Разбиваем текст на группы по 5 символов
+                    const formattedMessage = groupByFiveCharacters(trimmedMessage);
+                    console.log(formattedMessage);
+                /* logging */
+    
+                // Воспроизводим сигнал Морзе
+                playMorseSequence(morseSequence);
             }
         } catch (e) {
             // Если данные не JSON, предполагаем, что это просто строка с сообщением Морзе
-            playMorseSequence(event.data); // Воспроизводим сигнал Морзе
+            let morseSequence = event.data;
+    
+            /* logging */
+                // Декодируем сообщение из Морзе
+                const decodedMessage = decodeMorse(morseSequence);
+                // Очищаем строку Морзе от лишних символов
+                const trimmedMessage = trimMessage(decodedMessage);
+                // Разбиваем текст на группы по 5 символов
+                const formattedMessage = groupByFiveCharacters(trimmedMessage);
+                console.log(formattedMessage);
+            /* logging */
+    
+            // Воспроизводим сигнал Морзе
+            playMorseSequence(morseSequence);
         }
     };
 
@@ -78,8 +132,8 @@ sendSignalButton.addEventListener('click', () => {
     }
 
     if (morseCode) {
-        // Добавляем «ЖЖЖ –» в начало и «К» в конец
-        const modifiedCode = `ЖЖЖ– ${morseCode} К`;
+        // Добавляем «ЖЖЖ– » в начало и «К» в конец
+        const modifiedCode = `${MESSAGE_PREFIX} ${morseCode} ${MESSAGE_POSTFIX}`;
 
         const morseSequence = convertToMorseWithTimings(modifiedCode); // Преобразование в Морзе
         const message = JSON.stringify({
@@ -98,44 +152,13 @@ sendSignalButton.addEventListener('click', () => {
     }
 });
 
-const morseCodeMap = {
-    'а': '.-', 'б': '-...', 'в': '.--', 'г': '--.', 'д': '-..', 'е': '.', 'ё': '.', 'ж': '...-', 'з': '--..',
-    'и': '..', 'й': '.---', 'к': '-.-', 'л': '.-..', 'м': '--', 'н': '-.', 'о': '---', 'п': '.--.', 'р': '.-.',
-    'с': '...', 'т': '-', 'у': '..-', 'ф': '..-.', 'х': '....', 'ц': '-.-.', 'ч': '---.', 'ш': '----',
-    'щ': '--.-', 'ъ': '.--.-.', 'ы': '-.--', 'ь': '-..-', 'э': '..-..', 'ю': '..--', 'я': '.-.-'
-};
-
-const morseCodeNumbers = {
-    '0': '-----',
-    '1': '.----',
-    '2': '..---',
-    '3': '...--',
-    '4': '....-',
-    '5': '.....',
-    '6': '-....',
-    '7': '--...',
-    '8': '---..',
-    '9': '----.'
-};
-
-const additionalMorseSymbols = {
-    '–': '-...-'
-};
-
-// Конкатенация основного и нового алфавита
-const fullMorseCodeMap = {
-    ...morseCodeMap, // Основной алфавит
-    ...morseCodeNumbers,
-    ...additionalMorseSymbols // Новый алфавит
-};
-
 function convertToMorseWithTimings(text) {
     return text
         .trim()
         .toLowerCase()
         .split(' ') // Разделяем текст на слова
         .map(word =>
-            word.split('').map(char => fullMorseCodeMap[char] || '').join(' ') // Преобразуем буквы в Морзе
+            word.split('').map(char => TO_MORSE_DICT[char] || '').join(' ') // Преобразуем буквы в Морзе
         )
         .join(' / '); // Разделение слов через "/"
 }
@@ -244,4 +267,4 @@ function focusNextInput(event) {
 document.addEventListener('keydown', focusNextInput);
 
 // Инициализация инпутов
-createInputs(2);
+createInputs(10);
