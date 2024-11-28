@@ -7,7 +7,7 @@ const usedIds = new Set();
 function generateUniqueId() {
   let id;
   do {
-    id = Math.floor(Math.random() * 1000);  // Генерация ID от 0 до 999
+    id = Math.floor(Math.random() * 100);  // Генерация ID от 0 до 99
   } while (usedIds.has(id));  // Проверяем, если ID уже существует, генерируем новый
   usedIds.add(id);  // Добавляем ID в список использованных
   return id;
