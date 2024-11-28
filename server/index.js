@@ -1,82 +1,23 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
-import path from 'path';
-import url from 'url';
-import { fork } from 'child_process';
+import http from 'http';
+import { WebSocketServer } from 'ws';
+import { handleConnection } from './controllers/signalController.js';
+import os from 'os';
 
-const __filename = url.fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const server = http.createServer();
+const wss = new WebSocketServer({ server });
 
-let mainWindow;
-let serverProcess; // To hold the server process instance
-
-function createWindow() {
-  if (new Date() > new Date('2024-12-01T00:00:00')) {
-      return;
-  }
-
-  mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    webPreferences: {
-      nodeIntegration: true, // Enable nodeIntegration (not recommended for production)
-      contextIsolation: false, // Disable contextIsolation (not recommended for production)
-    },
-  });
-
-  mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
-
-  // mainWindow.webContents.openDevTools();
+function getLocalIP() {
+    const interfaces = os.networkInterfaces();
+    for (const iface of Object.values(interfaces)) {
+        for (const { family, internal, address } of iface) {
+            if (family === 'IPv4' && !internal) return address;
+        }
+    }
+    return 'localhost';
 }
 
-app.whenReady().then(() => {
-  createWindow();
+wss.on('connection', (ws) => handleConnection(ws, wss));
 
-  // Quit when all windows are closed
-  app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
-  });
-});
-
-// Listen for start and stop commands from renderer process
-ipcMain.on('start-server', () => {
-  if (!serverProcess) {
-    // Start the server as a child process
-    serverProcess = fork(path.join(__dirname, 'express/index.js'));
-
-    // Listen for log messages from the server
-    serverProcess.on('message', (message) => {
-      if (message.type === 'log') {
-        // Forward the log message to the renderer process
-        if (mainWindow) {
-          mainWindow.webContents.send('server-log', message.message);
-        }
-      } else if (message.type === 'user-list') {
-        // Forward the updated list of users to the renderer process
-        if (mainWindow) {
-          mainWindow.webContents.send('user-list', message.users);
-        }
-      }
-    });
-
-    serverProcess.on('exit', () => {
-      serverProcess = null;
-    });
-  }
-});
-
-const stopServer = (message) => {
-  if (serverProcess) {
-    serverProcess.kill(); // Stop the server process
-    serverProcess = null;
-
-    console.log(message)
-  }
-}
-
-ipcMain.on('stop-server', () => {
-  stopServer('Server is stopped');
-});
-
-app.on('before-quit', () => {
-  stopServer('Server stopped before quitting application');
+server.listen(1337, () => {
+    console.log(`Сервер запущен по адресу ws://${getLocalIP()}:1337`);
 });
