@@ -51,6 +51,14 @@
             font-size: 14px;
         }
 
+        input.morse-input {
+            text-transform: uppercase; /* Преобразуем вводимый текст в верхний регистр */
+        }
+
+        input.morse-input::placeholder {
+            text-transform: none; /* Оставляем плейсхолдер без изменений */
+        }
+
         button {
             padding: 10px 20px;
             margin: 5px;
