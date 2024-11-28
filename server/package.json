@@ -2,6 +2,8 @@
   "name": "morse-server",
   "version": "1.0.0",
   "description": "Morse Code Server",
+  "author": "mdmatvey <lyoshinmdmatvey@gmail.com>",
+  "homepage": "https://github.com/mdmatvey/Morse",
   "type": "module",
   "scripts": {
     "start": "electron .",
@@ -34,10 +36,22 @@
       ],
       "icon": "path/to/icon.ico"
     },
-    "linux": {
+   "linux": {
       "target": [
-        "AppImage",
-        "deb"
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ],
       "icon": "path/to/icon.png"
     }
