@@ -5,9 +5,25 @@
   "author": "mdmatvey <lyoshinmdmatvey@gmail.com>",
   "homepage": "https://github.com/mdmatvey/Morse",
   "type": "module",
+  "main": "express/index.js",
   "scripts": {
-    "start": "electron .",
-    "build": "electron-builder"
+    "start": "node index.js",
+    "build:pkg": "pkg . --output dist/pkg/MorseServer"
+  },
+  "pkg": {
+    "assets": [
+      "express/controllers/*.js",
+      "express/services/*.js"
+    ], 
+    "scripts": "express/index.js",
+    "targets": [
+      "node18-linux-x64",
+      "node18-macos-x64",
+      "node18-win-x64"
+    ]
+  },
+  "bin": {
+    "app": "./express/index.js"
   },
   "build": {
     "appId": "com.example.morseapp",
@@ -30,13 +46,13 @@
           "target": "nsis",
           "arch": [
             "x64",
-            "ia32"  
+            "ia32"
           ]
         }
       ],
       "icon": "path/to/icon.ico"
     },
-   "linux": {
+    "linux": {
       "target": [
         {
           "target": "AppImage",

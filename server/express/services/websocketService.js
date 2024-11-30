@@ -1,26 +1,24 @@
-import WebSocket from 'ws';
+const { WebSocket } = require('ws');
 
-export const clients = {};
+const clients = {};
 const connectedUsers = []; // Keep track of connected users
 
-export function registerClient(id, ws) {
+function registerClient(id, ws) {
   clients[id] = ws;
   connectedUsers.push(id); // Add the client to the list of connected users
   console.log(`Client registered: ${id}`);
-  broadcastUserList(); // Broadcast the updated user list
 }
 
-export function unregisterClient(id) {
+function unregisterClient(id) {
   delete clients[id];
   const index = connectedUsers.indexOf(Number(id));
   if (index !== -1) {
     connectedUsers.splice(index, 1); // Remove the client from the list of connected users
     console.log(`Client unregistered: ${id}`);
-    broadcastUserList(); // Broadcast the updated user list
   }
 }
 
-export function sendMessage(recipient, content) {
+function sendMessage(recipient, content) {
   const recipientWs = clients[recipient];
   if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
     recipientWs.send(content);
@@ -29,10 +27,4 @@ export function sendMessage(recipient, content) {
   }
 }
 
-function broadcastUserList() {
-  // Send the list of connected users to the main process
-  process.send({
-    type: 'user-list',
-    users: connectedUsers
-  });
-}
+module.exports = { clients, registerClient, unregisterClient, sendMessage };

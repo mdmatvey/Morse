@@ -30,7 +30,7 @@
           "target": "nsis",
           "arch": [
             "x64",
-            "ia32"  
+            "ia32"
           ]
         }
       ],
@@ -61,7 +61,15 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.1",
+    "@rollup/plugin-html": "^1.0.4",
+    "@rollup/plugin-node-resolve": "^15.3.0",
     "electron": "^33.0.2",
-    "electron-builder": "^24.13.3"
+    "electron-builder": "^24.13.3",
+    "rollup": "^2.79.2",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-html": "^0.2.1",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^7.0.2"
   }
 }
