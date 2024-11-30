@@ -10,10 +10,6 @@ let mainWindow;
 let serverProcess; // To hold the server process instance
 
 function createWindow() {
-  if (new Date() > new Date('2024-12-01T00:00:00')) {
-      return;
-  }
-
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,

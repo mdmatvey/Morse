@@ -1,4 +1,4 @@
-import { registerClient, unregisterClient, sendMessage, clients } from '../services/websocketService.js';
+const { registerClient, unregisterClient, sendMessage, clients } = require('../services/websocketService.js');
 
 // Для хранения уникальных ID
 const usedIds = new Set();
@@ -13,7 +13,7 @@ function generateUniqueId() {
   return id;
 }
 
-export function handleConnection(ws, wss) {
+function handleConnection(ws, wss) {
   console.log('Client connected');
 
   // Генерация уникального ID для нового пользователя
@@ -49,3 +49,5 @@ export function handleConnection(ws, wss) {
     }
   });
 }
+
+module.exports = { handleConnection }
