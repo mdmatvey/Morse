@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <title>Передача радиограммы</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="ui/styles/main.css" />
+    </head>
+    <body>
+        <div class="main-content">
+            <h1>Прием и передача радиограмм</h1>
+
+            <div class="three-row-container">
+                <!-- Первая строка: два столбца -->
+                <div class="first-row-container">
+                    <div>
+                        <p>
+                            <strong>Ваш ID:</strong>
+                            <span id="userIdDisplay"></span>
+                        </p>
+                        <label for="recipientId">ID получателя:</label>
+                        <input type="text" id="recipientId" value="Студент-" />
+                    </div>
+                    <div>
+                        <p>
+                            <strong>Соединение:</strong>
+                            <span id="connectionStatus" class="notification"
+                                >не подключено</span
+                            >
+                        </p>
+                        <label for="serverAddress">Адрес сервера:</label>
+                        <input
+                            type="text"
+                            id="serverAddress"
+                            placeholder="Адрес сервера"
+                        />
+                    </div>
+                </div>
+
+                <div
+                    style="
+                        display: flex;
+                        flex-direction: row;
+                        justify-content: space-evenly;
+                        align-items: center;
+                    "
+                >
+                    <label for="speedSelector">Скорость:</label>
+                    <select id="speedSelector">
+                        <option value="4">4 гр./мин</option>
+                        <option value="6">6 гр./мин</option>
+                        <option value="8">8 гр./мин</option>
+                        <option value="10">10 гр./мин</option>
+                        <option value="12">12 гр./мин</option>
+                    </select>
+                </div>
+
+                <!-- Вторая строка: кнопка для подключения -->
+                <div>
+                    <button
+                        id="connectServer"
+                        class="blue-button"
+                        style="width: 100%"
+                    >
+                        Подключиться
+                    </button>
+                </div>
+
+                <!-- Третья строка: селектор количества групп -->
+                <div style="flex-direction: column">
+                    <label for="groupCount">Количество групп:</label>
+                    <select id="groupCount">
+                        <option value="2">2</option>
+
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                    </select>
+                    <button id="sendSignal">Отправить радиограмму</button>
+                </div>
+            </div>
+
+            <div id="inputContainer"></div>
+        </div>
+        <script type="module" src="/app/main.js"></script>
+    </body>
+</html>
