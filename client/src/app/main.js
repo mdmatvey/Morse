@@ -1,9 +1,12 @@
 import { NetworkService } from '../services/NetworkService.js';
 import { MorseAudioPlayer } from '../core/morse/MorseAudioPlayer.js';
-import { createInputFields, getInputValues } from '../ui/components/inputs.js';
+import {
+    setupServiceInputHandlers,
+    createInputFields,
+    getInputValues,
+} from '../ui/components/inputs.js';
 import { ConnectionStatus } from '../ui/components/connectionStatus.js';
 import { focusNextInput } from '../ui/utils/focusNextInput.js';
-import { MESSAGE_PREFIX, MESSAGE_POSTFIX } from '../core/morse/constants.js';
 import { textToMorse } from '../core/morse/converter.js';
 
 const network = new NetworkService();
@@ -12,6 +15,7 @@ const connectionStatus = new ConnectionStatus('connectionStatus');
 let userId = '';
 
 const elements = {
+    serverAddress: document.getElementById('serverAddress'),
     connectButton: document.getElementById('connectServer'),
     sendButton: document.getElementById('sendSignal'),
     speedSelector: document.getElementById('speedSelector'),
@@ -20,8 +24,9 @@ const elements = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    createInputFields('inputContainer', 2);
-    // createInputFields('inputContainer', 10);
+    setupServiceInputHandlers();
+    createInputFields('inputContainer', 10);
+    // createInputFields('inputContainer', 2);
 
     elements.connectButton.addEventListener('click', handleConnect);
     elements.sendButton.addEventListener('click', handleSend);
@@ -39,7 +44,7 @@ async function handleConnect() {
     try {
         connectionStatus.setConnecting();
         await network.connect(
-            document.getElementById('serverAddress').value,
+            elements.serverAddress.value,
             handleIncomingMessage,
         );
         connectionStatus.setConnected();
@@ -61,7 +66,7 @@ function handleSend() {
     }
 
     // Формируем сообщение
-    const content = `${MESSAGE_PREFIX} ${getInputValues()} ${MESSAGE_POSTFIX}`;
+    const content = getInputValues();
 
     // Получаем выбранную скорость
     const speed = parseInt(elements.speedSelector.value);
@@ -76,6 +81,16 @@ function handleSend() {
 
 function handleIncomingMessage(data) {
     const morseSequence = textToMorse(data.content);
+
+    /* логирование */
+    const dataArray = data.content.split(' ');
+    const messageHeader = dataArray.slice(0, 7).join(' ');
+    const messageText = dataArray.slice(8, -3).join(' ');
+    const messageFooter = dataArray.slice(-3).join(' ');
+    console.log('Заголовок:', messageHeader);
+    console.log('Сообщение:', messageText);
+    console.log('Конец:', messageFooter);
+    /* логирование */
 
     morseAudioPlayer.playSequence(morseSequence, data.speed);
 }
