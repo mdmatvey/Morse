@@ -7,28 +7,31 @@
         <link rel="stylesheet" href="ui/styles/main.css"/>
     </head>
     <body>
-        <div class="main-content">
+        <div class="main">
             <div class="three-row-container">
                 <div class="first-row-container">
-                    <div>
-                        <p><strong>Ваш ID:</strong> <span id="userIdDisplay"></span></p>
-                        <label for="recipientId">ID получателя:</label>
-                        <input type="text" id="recipientId" value="Студент-"/>
-                    </div>
-                    <div>
-                        <p><strong>Соединение:</strong> <span id="connectionStatus" class="notification">не подключено</span></p>
+                    <div class="label-wrapper">
                         <label for="serverAddress">Адрес сервера:</label>
                         <input type="text" id="serverAddress" placeholder="Адрес сервера"/>
                     </div>
+                    <p><strong>Соединение:</strong> <span id="connectionStatus" class="notification">не подключено</span></p>
                 </div>
 
                 <div>
                     <button id="connectServer" class="blue-button">Подключиться</button>
                 </div>
+            
+                <div class="second-row-container">
+                    <p><strong>Ваш ID:</strong> <span id="userIdDisplay"></span></p>
+                    <div class="label-wrapper">
+                        <label for="recipientId">ID получателя:</label>
+                        <input type="text" id="recipientId" value="Студент-"/>
+                    </div>
+                </div>
             </div>
 
             <div class="input-fields">
-                <div class="label-wrapper">
+                <div class="group-count-wrapper label-wrapper">
                     <label for="groupCount">Количество групп:</label>
                     <select id="groupCount">
                         <option value="10">10</option>
@@ -58,49 +61,49 @@
                     <input type="text" placeholder="" maxlength="4" inputmode="numeric" class="message-input">
                 </div>
             </div>
-        </div>
 
-        <div class="controls-container">
-            <div class="control-column">
-                <div class="label-wrapper">
-                    <label for="speedSelector">Скорость:</label>
-                    <select id="speedSelector">
-                        <option value="4">4 гр./мин</option>
-                        <option value="6">6 гр./мин</option>
-                        <option value="8">8 гр./мин</option>
-                        <option value="10">10 гр./мин</option>
-                        <option value="12">12 гр./мин</option>
-                    </select>
+            <div class="controls-container">
+                <div class="control-column">
+                    <div class="label-wrapper">
+                        <label for="speedSelector">Скорость:</label>
+                        <select id="speedSelector">
+                            <option value="4">4 гр./мин</option>
+                            <option value="6">6 гр./мин</option>
+                            <option value="8">8 гр./мин</option>
+                            <option value="10">10 гр./мин</option>
+                            <option value="12">12 гр./мин</option>
+                        </select>
+                    </div>
+
+                    <div class="tone-selector-container">
+                        <label for="toneSelector">Тональность:</label>
+                        <input type="range" id="toneSelector" min="600" max="1200" value="600">
+                        <span id="toneValue"></span>
+                    </div>
                 </div>
 
-                <div class="tone-selector-container">
-                    <label for="toneSelector">Тональность:</label>
-                    <input type="range" id="toneSelector" min="600" max="1200" value="600">
-                    <span id="toneValue"></span>
-                </div>
-            </div>
-
-            <div class="control-column">
-                <div class="label-wrapper">
-                    <label for="letterPause">Пауза между знаками:</label>
-                    <input type="text" maxlength="4" value="300" id="letterPause" class="number">
-                    <span>мс</span>
-                </div>
-                
-                <div class="label-wrapper">
-                    <label for="groupPause">Пауза между группами:</label>
-                    <input type="text" maxlength="4" value="600" id="groupPause" class="number">
-                    <span>мс</span>
-                </div>
-            </div>
-
-            <div class="control-column">
-                <div class="label-wrapper checkbox">
-                    <label for="groupPause">Короткий ноль:</label>
-                    <input type="checkbox" id="shortZero">
+                <div class="control-column">
+                    <div class="label-wrapper">
+                        <label for="letterPause">Пауза между знаками:</label>
+                        <input type="text" maxlength="4" value="300" id="letterPause" class="number">
+                        <span>мс</span>
+                    </div>
+                    
+                    <div class="label-wrapper">
+                        <label for="groupPause">Пауза между группами:</label>
+                        <input type="text" maxlength="4" value="600" id="groupPause" class="number">
+                        <span>мс</span>
+                    </div>
                 </div>
 
-                <button id="sendSignal">Отправить радиограмму</button>
+                <div class="control-column">
+                    <div class="label-wrapper checkbox">
+                        <label for="groupPause">Короткий ноль:</label>
+                        <input type="checkbox" id="shortZero">
+                    </div>
+
+                    <button id="sendSignal">Отправить радиограмму</button>
+                </div>
             </div>
         </div>
 
