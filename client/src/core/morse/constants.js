@@ -65,10 +65,6 @@ export const FROM_MORSE_DICT = Object.fromEntries(
     ]),
 );
 
-// Префиксы и постфиксы
-export const MESSAGE_PREFIX = 'ЖЖЖ-';
-export const MESSAGE_POSTFIX = 'К';
-
 // Настройки скорости
 export const SPEED_CONFIG = {
     BASE_UNIT: 700, // Формула расчета: BASE_UNIT / speedGroupsPerMinute

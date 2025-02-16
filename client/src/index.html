@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
     <head>
         <title>Передача радиограммы</title>
@@ -8,10 +8,7 @@
     </head>
     <body>
         <div class="main-content">
-            <h1>Прием и передача радиограмм</h1>
-
             <div class="three-row-container">
-                <!-- Первая строка: два столбца -->
                 <div class="first-row-container">
                     <div>
                         <p>
@@ -37,14 +34,60 @@
                     </div>
                 </div>
 
-                <div
-                    style="
-                        display: flex;
-                        flex-direction: row;
-                        justify-content: space-evenly;
-                        align-items: center;
-                    "
-                >
+                <div>
+                    <button
+                        id="connectServer"
+                        class="blue-button"
+                        style="width: 100%"
+                    >
+                        Подключиться
+                    </button>
+                </div>
+            </div>
+
+            <div class="input-fields">
+                <div style="display: flex; align-items: baseline; width: 100%; gap: 15px">
+                    <label for="groupCount">Количество групп:</label>
+                    <select id="groupCount">
+                        <!-- <option value="2">2</option> -->
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                    </select>
+                </div>
+
+                <div class="service-fields row-1">
+                    <input type="text" placeholder="" maxlength="10" class="message-input">
+                    <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number">
+                    <input type="text" placeholder="" maxlength="2" inputmode="numeric" class="message-input number">
+                    <input type="text" placeholder="" maxlength="4" inputmode="numeric" class="message-input number">
+                    <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number">
+                    <span>=</span>
+                    <input type="text" placeholder="" maxlength="3" type="text" inputmode="numeric" class="message-input">
+                    <input type="text" placeholder="" maxlength="6" inputmode="numeric" class="message-input number">
+                    <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number">
+                    <span>=</span>
+                </div>
+
+                <div id="inputContainer"></div>
+
+                <div class="service-fields row-3">
+                    <input type="text" placeholder="" maxlength="5" inputmode="numeric" class="message-input">
+                    <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input">
+                    <input type="text" placeholder="" maxlength="4" inputmode="numeric" class="message-input">
+                </div>
+            </div>
+
+            <div
+                style="
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: space-evenly;
+                    align-items: center;
+                    width: 100%;
+                "
+            >
+                <div style="display: flex; align-items: baseline; gap: 15px;">
                     <label for="speedSelector">Скорость:</label>
                     <select id="speedSelector">
                         <option value="4">4 гр./мин</option>
@@ -55,33 +98,10 @@
                     </select>
                 </div>
 
-                <!-- Вторая строка: кнопка для подключения -->
-                <div>
-                    <button
-                        id="connectServer"
-                        class="blue-button"
-                        style="width: 100%"
-                    >
-                        Подключиться
-                    </button>
-                </div>
-
-                <!-- Третья строка: селектор количества групп -->
-                <div style="flex-direction: column">
-                    <label for="groupCount">Количество групп:</label>
-                    <select id="groupCount">
-                        <option value="2">2</option>
-
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                        <option value="30">30</option>
-                    </select>
-                    <button id="sendSignal">Отправить радиограмму</button>
-                </div>
+                <button id="sendSignal">Отправить радиограмму</button>
             </div>
-
-            <div id="inputContainer"></div>
         </div>
+
         <script type="module" src="/app/main.js"></script>
     </body>
 </html>

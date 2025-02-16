@@ -1,3 +1,19 @@
+export function setupServiceInputHandlers() {
+    const inputs = document.querySelectorAll('.service-fields input');
+
+    inputs.forEach((input) => {
+        input.addEventListener('input', (event) => {
+            let value = event.target.value;
+
+            event.target.value = value.toUpperCase();
+
+            if (input.className.indexOf('number') !== -1) {
+                event.target.value = event.target.value.replace(/\D/g, '');
+            }
+        });
+    });
+}
+
 export function createInputFields(containerId, groupCount) {
     const container = document.getElementById(containerId);
     container.innerHTML = '';
@@ -7,11 +23,11 @@ export function createInputFields(containerId, groupCount) {
         input.type = 'text';
         input.placeholder = `Группа ${i + 1}`;
         input.maxLength = 5;
-        input.className = 'morse-input';
+        input.className = 'morse-input message-input';
 
         input.addEventListener('input', (e) => {
             e.target.value = e.target.value
-                .replace(/[^а-яё0-9-]/gi, '')
+                .replace(/[^а-яё0-9]/gi, '')
                 .toUpperCase();
         });
 
@@ -20,7 +36,7 @@ export function createInputFields(containerId, groupCount) {
 }
 
 export function getInputValues() {
-    return Array.from(document.querySelectorAll('.morse-input'))
+    return Array.from(document.querySelectorAll('.message-input'))
         .map((input) => input.value.trim())
         .filter(Boolean)
         .join(' ');
