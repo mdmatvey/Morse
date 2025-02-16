@@ -1,7 +1,7 @@
 import { NetworkService } from '../services/NetworkService.js';
 import { MorseAudioPlayer } from '../core/morse/MorseAudioPlayer.js';
 import {
-    setupServiceInputHandlers,
+    setupInputHandlers,
     createInputFields,
     getInputValues,
 } from '../ui/components/inputs.js';
@@ -21,21 +21,33 @@ const elements = {
     speedSelector: document.getElementById('speedSelector'),
     groupSelector: document.getElementById('groupCount'),
     userIdDisplay: document.getElementById('userIdDisplay'),
+    toneSelector: document.getElementById('toneSelector'),
+    toneValue: document.getElementById('toneValue'),
+    letterPauseInput: document.getElementById('letterPause'),
+    groupPauseInput: document.getElementById('groupPause'),
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    setupServiceInputHandlers();
+    // Создание и настройка обработчиков инпутов
     createInputFields('inputContainer', 10);
-    // createInputFields('inputContainer', 2);
+    setupInputHandlers();
 
+    // Обработчик для слайдера тональности
     elements.connectButton.addEventListener('click', handleConnect);
     elements.sendButton.addEventListener('click', handleSend);
     elements.groupSelector.addEventListener('change', updateInputs);
 
+    // Обработчик для слайдера тональности
+    elements.toneSelector.addEventListener('input', updateToneValue);
+
+    // Обработчик получения айди юзера при регистрации
     network.onUserIdReceived = (id) => {
         userId = id;
         elements.userIdDisplay.textContent = `Студент-${userId}`;
     };
+
+    // Инициализация начального значения тональности
+    updateToneValue();
 });
 
 document.addEventListener('keydown', focusNextInput);
@@ -56,7 +68,7 @@ async function handleConnect() {
 }
 
 function handleSend() {
-    // Получаем актуальное значение из поля ввода
+    // Получаем адресата отправки
     const recipientInput = document.getElementById('recipientId').value;
     const recipient = recipientInput.match(/\d+/)?.[0] || '';
 
@@ -68,19 +80,22 @@ function handleSend() {
     // Формируем сообщение
     const content = getInputValues();
 
-    // Получаем выбранную скорость
-    const speed = parseInt(elements.speedSelector.value);
+    // Получаем параметры
+    const params = {
+        speed: parseInt(elements.speedSelector.value),
+        tone: parseInt(elements.toneSelector.value),
+        letterPause: parseInt(elements.letterPauseInput.value),
+        groupPause: parseInt(elements.groupPauseInput.value),
+    };
 
     // Отправляем с текущим recipientId
-    network.sendMessage({
-        recipient,
-        content,
-        speed,
-    });
+    network.sendMessage(recipient, content, params);
 }
 
 function handleIncomingMessage(data) {
+    // Получаем закодированный в морзе текст и параметры воспроизведения
     const morseSequence = textToMorse(data.content);
+    const { speed, tone, letterPause, groupPause } = data.params;
 
     /* логирование */
     const dataArray = data.content.split(' ');
@@ -92,9 +107,22 @@ function handleIncomingMessage(data) {
     console.log('Конец:', messageFooter);
     /* логирование */
 
-    morseAudioPlayer.playSequence(morseSequence, data.speed);
+    // Запускаем воспроизведение полученного сообщения с заданными параметрами
+    morseAudioPlayer.playSequence(
+        morseSequence,
+        speed,
+        tone,
+        letterPause,
+        groupPause,
+    );
 }
 
 function updateInputs(e) {
     createInputFields('inputContainer', parseInt(e.target.value));
+}
+
+function updateToneValue() {
+    // Обновляем отображаемое значение слайдера тональности
+    const tone = elements.toneSelector.value;
+    elements.toneValue.textContent = `${tone} Гц`;
 }

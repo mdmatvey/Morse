@@ -28,7 +28,7 @@
             </div>
 
             <div class="input-fields">
-                <div class="flex-container">
+                <div class="label-select-wrapper">
                     <label for="groupCount">Количество групп:</label>
                     <select id="groupCount">
                         <option value="10">10</option>
@@ -58,9 +58,11 @@
                     <input type="text" placeholder="" maxlength="4" inputmode="numeric" class="message-input">
                 </div>
             </div>
+        </div>
 
-            <div class="controls-container">
-                <div class="speed-selector-container">
+        <div class="controls-container">
+            <div class="control-column">
+                <div class="label-select-wrapper">
                     <label for="speedSelector">Скорость:</label>
                     <select id="speedSelector">
                         <option value="4">4 гр./мин</option>
@@ -71,6 +73,28 @@
                     </select>
                 </div>
 
+                <div class="tone-selector-container">
+                    <label for="toneSelector">Тональность:</label>
+                    <input type="range" id="toneSelector" min="600" max="1200" value="600">
+                    <span id="toneValue"></span>
+                </div>
+            </div>
+
+            <div class="control-column">
+                <div class="label-select-wrapper">
+                    <label for="letterPause">Пауза между знаками:</label>
+                    <input type="text" maxlength="4" id="letterPause" class="number">
+                    <span>мс</span>
+                </div>
+                
+                <div class="label-select-wrapper">
+                    <label for="groupPause">Пауза между группами:</label>
+                    <input type="text" maxlength="4" id="groupPause" class="number">
+                    <span>мс</span>
+                </div>
+            </div>
+
+            <div class="control-column">
                 <button id="sendSignal">Отправить радиограмму</button>
             </div>
         </div>

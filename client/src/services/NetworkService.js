@@ -34,13 +34,13 @@ export class NetworkService {
         });
     }
 
-    sendMessage({ content, speed, recipient }) {
+    sendMessage(recipient, content, params) {
         const message = {
             type: 'message',
             id: this.userId,
             recipient: recipient,
-            speed,
             content,
+            params,
         };
 
         this.ws.send(JSON.stringify(message));

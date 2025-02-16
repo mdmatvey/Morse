@@ -18,10 +18,10 @@ export function unregisterClient(id) {
     }
 }
 
-export function sendMessage(recipient, content, speed) {
+export function sendMessage(recipient, content, params) {
     const recipientWs = clients[recipient];
     if (recipientWs?.readyState === WebSocket.OPEN) {
-        recipientWs.send(JSON.stringify({ type: 'message', content, speed }));
+        recipientWs.send(JSON.stringify({ type: 'message', content, params }));
     } else {
         console.log(`Recipient ${recipient} not found or not ready`);
     }
