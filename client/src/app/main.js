@@ -25,6 +25,7 @@ const elements = {
     toneValue: document.getElementById('toneValue'),
     letterPauseInput: document.getElementById('letterPause'),
     groupPauseInput: document.getElementById('groupPause'),
+    shortZeroCheckbox: document.querySelector('input[type="checkbox"]'),
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -86,6 +87,7 @@ function handleSend() {
         tone: parseInt(elements.toneSelector.value),
         letterPause: parseInt(elements.letterPauseInput.value),
         groupPause: parseInt(elements.groupPauseInput.value),
+        shortZero: elements.shortZeroCheckbox.checked,
     };
 
     // Отправляем с текущим recipientId
@@ -93,9 +95,9 @@ function handleSend() {
 }
 
 function handleIncomingMessage(data) {
-    // Получаем закодированный в морзе текст и параметры воспроизведения
-    const morseSequence = textToMorse(data.content);
-    const { speed, tone, letterPause, groupPause } = data.params;
+    // Получаем параметры воспроизведения и кодируем текст в морзе
+    const { speed, tone, letterPause, groupPause, shortZero } = data.params;
+    const morseSequence = textToMorse(data.content, shortZero);
 
     /* логирование */
     const dataArray = data.content.split(' ');
