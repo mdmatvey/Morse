@@ -10,20 +10,27 @@
         <div class="main-content">
             <div class="three-row-container">
                 <div class="first-row-container">
-                    <div>
-                        <p><strong>Ваш ID:</strong> <span id="userIdDisplay"></span></p>
-                        <label for="recipientId">ID получателя:</label>
-                        <input type="text" id="recipientId" value="Студент-"/>
+                    <div class="label-wrapper">
+                        <label for="studentData">Данные студента:</label>
+                        <input type="text" id="studentData" placeholder="Введите данные"/>
                     </div>
-                    <div>
-                        <p><strong>Соединение:</strong> <span id="connectionStatus" class="notification">не подключено</span></p>
+                    <div class="label-wrapper">
                         <label for="serverAddress">Адрес сервера:</label>
                         <input type="text" id="serverAddress" placeholder="Адрес сервера"/>
                     </div>
+                    <p><strong>Соединение:</strong> <span id="connectionStatus" class="notification">не подключено</span></p>
                 </div>
 
                 <div>
                     <button id="connectServer" class="blue-button">Подключиться</button>
+                </div>
+            
+                <div class="second-row-container">
+                    <p><strong>Ваш ID:</strong> <span id="userIdDisplay"></span></p>
+                    <div class="label-wrapper">
+                        <label for="recipientId">ID получателя:</label>
+                        <input type="text" id="recipientId" value="Студент-"/>
+                    </div>
                 </div>
             </div>
 

@@ -87,9 +87,9 @@ button:disabled {
 .three-row-container {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
     width: 100%;
-    max-width: 500px;
+    max-width: 1200px;
     margin-bottom: 20px;
 }
 
@@ -97,13 +97,17 @@ button:disabled {
 .first-row-container {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     gap: 20px;
 }
 
-.first-row-container div {
+
+/* Вторая строка */
+.second-row-container {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
+    gap: 20px;
 }
 
 /* Поля ввода */
