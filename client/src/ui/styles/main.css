@@ -1,3 +1,4 @@
+/* Общие стили */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f9;
@@ -72,6 +73,7 @@ button:disabled {
     cursor: not-allowed;
 }
 
+/* Контейнер из трех строк */
 .three-row-container {
     display: flex;
     flex-direction: column;
@@ -81,6 +83,7 @@ button:disabled {
     margin-bottom: 20px;
 }
 
+/* Первая строка */
 .first-row-container {
     display: flex;
     justify-content: space-between;
@@ -93,6 +96,7 @@ button:disabled {
     align-items: center;
 }
 
+/* Поля ввода */
 .input-fields {
     max-width: 1000px;
 }
@@ -109,7 +113,6 @@ button:disabled {
     justify-content: space-between;
 }
 
-
 .service-fields * {
     font-weight: bold;
 }
@@ -124,6 +127,23 @@ button:disabled {
 .service-fields input::placeholder {
     color: #666;
     font-size: 0.9em;
+}
+
+/* flex-контейнера */
+.flex-container {
+    display: flex;
+    align-items: baseline;
+    width: 100%;
+    gap: 15px;
+}
+
+/* Контейнер с кнопками и селекторами */
+.controls-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 100%;
 }
 
 #inputContainer {
@@ -154,10 +174,23 @@ button:disabled {
     width: 100%;
 }
 
+/* Статусы */
 .success {
     color: #155724;
 }
 
 .error {
     color: #721c24;
+}
+
+/* Кнопка "Подключиться" */
+.blue-button {
+    width: 100%;
+}
+
+/* Выбор скорости */
+.speed-selector-container {
+    display: flex;
+    align-items: baseline;
+    gap: 15px;
 }
