@@ -1,6 +1,6 @@
 export function setupInputHandlers() {
     const inputs = document.querySelectorAll(
-        '.service-fields input, .controls-container input',
+        '.service-fields input, .controls-container input, #operationalInterface textarea',
     );
 
     inputs.forEach((input) => {
