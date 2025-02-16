@@ -12,7 +12,7 @@
                 <div class="first-row-container">
                     <div class="label-wrapper">
                         <label for="serverAddress">Адрес сервера:</label>
-                        <input type="text" id="serverAddress" placeholder="Адрес сервера"/>
+                        <input type="text" id="serverAddress" placeholder="Адрес сервера" />
                     </div>
                     <p><strong>Соединение:</strong> <span id="connectionStatus" class="notification">не подключено</span></p>
                 </div>
@@ -20,45 +20,61 @@
                 <div>
                     <button id="connectServer" class="blue-button">Подключиться</button>
                 </div>
-            
+
                 <div class="second-row-container">
                     <p><strong>Ваш ID:</strong> <span id="userIdDisplay"></span></p>
                     <div class="label-wrapper">
-                        <label for="recipientId">ID получателя:</label>
-                        <input type="text" id="recipientId" value="Студент-"/>
+                        <label for="recipientId">ID корреспондента:</label>
+                        <input type="text" id="recipientId" value="Студент-" />
+                    </div>
+
+                    <div class="interface-switcher label-wrapper">
+                        <label for="interfaceMode">Формат обмена:</label>
+                        <select id="interfaceMode">
+                            <option value="service">Служебный</option>
+                            <option value="operational">Оперативный</option>
+                        </select>
                     </div>
                 </div>
             </div>
 
-            <div class="input-fields">
-                <div class="group-count-wrapper label-wrapper">
-                    <label for="groupCount">Количество групп:</label>
-                    <select id="groupCount">
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                        <option value="30">30</option>
-                    </select>
+            <div>
+                <div id="serviceInterface">
+                    <div class="input-fields">
+                        <div class="group-count-wrapper label-wrapper">
+                            <label for="groupCount">Количество групп:</label>
+                            <select id="groupCount">
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="30">30</option>
+                            </select>
+                        </div>
+    
+                        <div class="service-fields row-1">
+                            <input type="text" placeholder="" maxlength="10" class="message-input" />
+                            <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number" />
+                            <input type="text" placeholder="" maxlength="2" inputmode="numeric" class="message-input number" />
+                            <input type="text" placeholder="" maxlength="4" inputmode="numeric" class="message-input number" />
+                            <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number" />
+                            <span>=</span>
+                            <input type="text" placeholder="" maxlength="3" type="text" inputmode="numeric" class="message-input" />
+                            <input type="text" placeholder="" maxlength="6" inputmode="numeric" class="message-input number" />
+                            <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number" />
+                            <span>=</span>
+                        </div>
+    
+                        <div id="inputContainer"></div>
+    
+                        <div class="service-fields row-3">
+                            <input type="text" placeholder="" maxlength="5" inputmode="numeric" class="message-input number" />
+                            <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number" />
+                            <input type="text" placeholder="" maxlength="4" inputmode="numeric" class="message-input" />
+                        </div>
+                    </div>
                 </div>
-
-                <div class="service-fields row-1">
-                    <input type="text" placeholder="" maxlength="10" class="message-input">
-                    <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number">
-                    <input type="text" placeholder="" maxlength="2" inputmode="numeric" class="message-input number">
-                    <input type="text" placeholder="" maxlength="4" inputmode="numeric" class="message-input number">
-                    <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number">
-                    <span>=</span>
-                    <input type="text" placeholder="" maxlength="3" type="text" inputmode="numeric" class="message-input">
-                    <input type="text" placeholder="" maxlength="6" inputmode="numeric" class="message-input number">
-                    <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number">
-                    <span>=</span>
-                </div>
-
-                <div id="inputContainer"></div>
-
-                <div class="service-fields row-3">
-                    <input type="text" placeholder="" maxlength="5" inputmode="numeric" class="message-input number">
-                    <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number">
-                    <input type="text" placeholder="" maxlength="4" inputmode="numeric" class="message-input">
+    
+                <div id="operationalInterface" class="hidden">
+                    <textarea placeholder="Введите сообщение..." id="operationalInput" class="message-input"></textarea>
                 </div>
             </div>
 
@@ -77,7 +93,7 @@
 
                     <div class="tone-selector-container">
                         <label for="toneSelector">Тональность:</label>
-                        <input type="range" id="toneSelector" min="600" max="1200" value="600">
+                        <input type="range" id="toneSelector" min="600" max="1200" value="600" />
                         <span id="toneValue"></span>
                     </div>
                 </div>
@@ -85,13 +101,13 @@
                 <div class="control-column">
                     <div class="label-wrapper">
                         <label for="letterPause">Пауза между знаками:</label>
-                        <input type="text" maxlength="4" value="300" id="letterPause" class="number">
+                        <input type="text" maxlength="4" value="300" id="letterPause" class="number" />
                         <span>мс</span>
                     </div>
-                    
+
                     <div class="label-wrapper">
                         <label for="groupPause">Пауза между группами:</label>
-                        <input type="text" maxlength="4" value="600" id="groupPause" class="number">
+                        <input type="text" maxlength="4" value="600" id="groupPause" class="number" />
                         <span>мс</span>
                     </div>
                 </div>

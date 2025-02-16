@@ -16,38 +16,41 @@ let userId = '';
 
 const elements = {
     serverAddress: document.getElementById('serverAddress'),
-    connectButton: document.getElementById('connectServer'),
-    sendButton: document.getElementById('sendSignal'),
-    speedSelector: document.getElementById('speedSelector'),
-    groupSelector: document.getElementById('groupCount'),
     userIdDisplay: document.getElementById('userIdDisplay'),
+    connectButton: document.getElementById('connectServer'),
+    interfaceMode: document.getElementById('interfaceMode'),
+    serviceInterface: document.getElementById('serviceInterface'),
+    operationalInterface: document.getElementById('operationalInterface'),
+    groupSelector: document.getElementById('groupCount'),
+    speedSelector: document.getElementById('speedSelector'),
     toneSelector: document.getElementById('toneSelector'),
     toneValue: document.getElementById('toneValue'),
     letterPauseInput: document.getElementById('letterPause'),
     groupPauseInput: document.getElementById('groupPause'),
     shortZeroCheckbox: document.querySelector('input[type="checkbox"]'),
+    sendButton: document.getElementById('sendSignal'),
+    operationalInput: document.getElementById('operationalInput'),
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Создание и настройка обработчиков инпутов
-    createInputFields('inputContainer', 10);
-    setupInputHandlers();
+    // Обработчик переключения типа интерфейса
+    elements.interfaceMode.addEventListener('change', toggleInterface);
 
-    // Обработчик для слайдера тональности
+    // Обработчики сетевого интерфейса
     elements.connectButton.addEventListener('click', handleConnect);
     elements.sendButton.addEventListener('click', handleSend);
-    elements.groupSelector.addEventListener('change', updateInputs);
-
-    // Обработчик для слайдера тональности
-    elements.toneSelector.addEventListener('input', updateToneValue);
-
-    // Обработчик получения айди юзера при регистрации
     network.onUserIdReceived = (id) => {
         userId = id;
         elements.userIdDisplay.textContent = `Студент-${userId}`;
     };
 
-    // Инициализация начального значения тональности
+    // Обработчики инпутов
+    createInputFields('inputContainer', 10);
+    setupInputHandlers();
+    elements.groupSelector.addEventListener('change', updateInputs);
+
+    // Обработчик слайдера тональности
+    elements.toneSelector.addEventListener('input', updateToneValue);
     updateToneValue();
 });
 
@@ -79,7 +82,7 @@ function handleSend() {
     }
 
     // Формируем сообщение
-    const content = getInputValues();
+    const content = getInputValues(elements.interfaceMode.value);
 
     // Получаем параметры
     const params = {
@@ -100,13 +103,17 @@ function handleIncomingMessage(data) {
     const morseSequence = textToMorse(data.content, shortZero);
 
     /* логирование */
-    const dataArray = data.content.split(' ');
-    const messageHeader = dataArray.slice(0, 7).join(' ');
-    const messageText = dataArray.slice(8, -3).join(' ');
-    const messageFooter = dataArray.slice(-3).join(' ');
-    console.log('Заголовок:', messageHeader);
-    console.log('Сообщение:', messageText);
-    console.log('Конец:', messageFooter);
+    try {
+        const dataArray = data.content.split(' ');
+        const messageHeader = dataArray.slice(0, 7).join(' ');
+        const messageText = dataArray.slice(8, -3).join(' ');
+        const messageFooter = dataArray.slice(-3).join(' ');
+        console.log('Сообщение:', data.content);
+        console.log('------------------');
+        console.log('Заголовок:', messageHeader);
+        console.log('Сообщение:', messageText);
+        console.log('Конец:', messageFooter);
+    } catch {}
     /* логирование */
 
     // Запускаем воспроизведение полученного сообщения с заданными параметрами
@@ -117,6 +124,18 @@ function handleIncomingMessage(data) {
         letterPause,
         groupPause,
     );
+}
+
+function toggleInterface() {
+    if (elements.interfaceMode.value === 'service') {
+        elements.serviceInterface.classList.remove('hidden');
+        elements.operationalInterface.classList.add('hidden');
+        document.addEventListener('keydown', focusNextInput);
+    } else {
+        elements.serviceInterface.classList.add('hidden');
+        elements.operationalInterface.classList.remove('hidden');
+        document.removeEventListener('keydown', focusNextInput);
+    }
 }
 
 function updateInputs(e) {

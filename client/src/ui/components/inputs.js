@@ -1,6 +1,6 @@
 export function setupInputHandlers() {
     const inputs = document.querySelectorAll(
-        '.service-fields input, .controls-container input',
+        '.service-fields input, .controls-container input, #operationalInterface textarea',
     );
 
     inputs.forEach((input) => {
@@ -37,8 +37,14 @@ export function createInputFields(containerId, groupCount) {
     }
 }
 
-export function getInputValues() {
-    return Array.from(document.querySelectorAll('.message-input'))
+export function getInputValues(interfaceMode) {
+    const inputsContainer = document.getElementById(
+        interfaceMode === 'service'
+            ? 'serviceInterface'
+            : 'operationalInterface',
+    );
+
+    return Array.from(inputsContainer.querySelectorAll('.message-input'))
         .map((input) => input.value.trim())
         .filter(Boolean)
         .join(' ');
