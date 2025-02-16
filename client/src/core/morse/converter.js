@@ -1,10 +1,15 @@
 import { TO_MORSE_DICT } from './constants.js';
 
-export function textToMorse(text) {
+export function textToMorse(text, shortZero) {
     return text
         .toLowerCase()
         .split('')
-        .map((char) => TO_MORSE_DICT[char] || '')
+        .map((char) => {
+            if (shortZero && char === '0') {
+                return '-';
+            }
+            return TO_MORSE_DICT[char] || '';
+        })
         .join(' ');
 }
 
