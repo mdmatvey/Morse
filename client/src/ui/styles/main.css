@@ -45,6 +45,10 @@ select {
     font-size: 14px;
 }
 
+input[type="range"] {
+    padding: 0;
+}
+
 input.message-input {
     text-transform: uppercase;
 }
@@ -71,6 +75,12 @@ button:hover {
 button:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
+}
+
+.label-select-wrapper {
+    display: flex;
+    align-items: baseline;
+    gap: 15px;
 }
 
 /* Контейнер из трех строк */
@@ -129,23 +139,46 @@ button:disabled {
     font-size: 0.9em;
 }
 
-/* flex-контейнера */
-.flex-container {
+/* Контейнер для нижней части экрана */
+.controls-container {
     display: flex;
-    align-items: baseline;
-    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    width: 80%;
+    margin: 0 auto;
+}
+
+/* Колонки внизу */
+.control-column {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Стили для слайдера тона */
+.tone-selector-container {
+    display: flex;
+    align-items: center;
     gap: 15px;
 }
 
-/* Контейнер с кнопками и селекторами */
-.controls-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-    align-items: center;
-    width: 100%;
+#toneSelector {
+    width: 150px;
 }
 
+#toneValue {
+    display: inline-block;
+    width: 60px;
+    text-align: right;
+    font-weight: bold;
+}
+
+/* Селекторы для пауз */
+#letterPause,
+#groupPause {
+    width: 80px;
+}
+
+/* Контейнер для ввода */
 #inputContainer {
     display: grid;
     grid-template-columns: repeat(5, 1fr);

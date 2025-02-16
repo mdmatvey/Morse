@@ -1,5 +1,7 @@
-export function setupServiceInputHandlers() {
-    const inputs = document.querySelectorAll('.service-fields input');
+export function setupInputHandlers() {
+    const inputs = document.querySelectorAll(
+        '.service-fields input, .controls-container input',
+    );
 
     inputs.forEach((input) => {
         input.addEventListener('input', (event) => {

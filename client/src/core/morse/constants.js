@@ -67,21 +67,6 @@ export const FROM_MORSE_DICT = Object.fromEntries(
 
 // Настройки скорости
 export const SPEED_CONFIG = {
-    BASE_UNIT: 700, // Формула расчета: BASE_UNIT / speedGroupsPerMinute
-    DOT_DURATION: 100,
+    BASE_UNIT: 700,
     DASH_MULTIPLIER: 3,
-    PAUSE_MULTIPLIERS: {
-        INTRA_LETTER: 1,
-        INTER_LETTER: 3,
-        INTER_WORD: 7,
-    },
-};
-
-export const MORSE_TIMINGS = {
-    '.': () => SPEED_CONFIG.DOT_DURATION,
-    '-': () => SPEED_CONFIG.DOT_DURATION * SPEED_CONFIG.DASH_MULTIPLIER,
-    ' ': () =>
-        SPEED_CONFIG.DOT_DURATION * SPEED_CONFIG.PAUSE_MULTIPLIERS.INTER_LETTER,
-    '/': () =>
-        SPEED_CONFIG.DOT_DURATION * SPEED_CONFIG.PAUSE_MULTIPLIERS.INTER_WORD,
 };
