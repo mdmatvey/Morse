@@ -1,10 +1,33 @@
 {
+    "name": "server",
+    "bin": "temp_dist/index.js",
     "type": "module",
+    "pkg": {
+        "outputPath": "../build/server",
+        "targets": [
+            "node16-win-x64",
+            "node16-macos-x64",
+            "node16-linux-x64"
+        ],
+        "assets": [
+            "./node_modules/**/*",
+            "temp_dist/controllers/**/*",
+            "temp_dist/services/**/*"
+        ]
+    },
     "scripts": {
         "start": "node index.js",
-        "start:watch": "node --watch index.js"
+        "start:watch": "node --watch index.js",
+        "build:babel": "babel . --out-dir temp_dist",
+        "build:pkg": "pkg .",
+        "build": "source ~/.nvm/nvm.sh && nvm use 16 && npm run build:babel && npm run build:pkg && rm -rf temp_dist"
     },
     "dependencies": {
         "ws": "^8.18.0"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.20.0",
+        "@babel/preset-env": "^7.20.0",
+        "@babel/cli": "^7.20.0"
     }
 }
