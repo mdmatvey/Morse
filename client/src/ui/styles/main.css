@@ -217,11 +217,6 @@ button:disabled {
     color: #721c24;
 }
 
-/* Кнопка "Подключиться" */
-.blue-button {
-    width: 100%;
-}
-
 /* Выбор скорости */
 .speed-selector-container {
     display: flex;

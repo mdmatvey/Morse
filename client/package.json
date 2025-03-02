@@ -1,6 +1,7 @@
 {
     "scripts": {
-        "dev": "vite",
+        "start": "npm run dev",
+        "dev": "source ~/.nvm/nvm.sh && nvm use 18 && vite",
         "build": "source ~/.nvm/nvm.sh && nvm use 18 && vite build"
     },
     "devDependencies": {

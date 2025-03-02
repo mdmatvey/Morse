@@ -5,7 +5,7 @@ export class NetworkService {
         this.onUserIdReceived = null;
     }
 
-    connect(serverUrl, onMessageCallback) {
+    connect(serverUrl, onMessage) {
         return new Promise((resolve, reject) => {
             this.ws = new WebSocket(`ws://${serverUrl}`);
 
@@ -19,11 +19,9 @@ export class NetworkService {
                     const data = JSON.parse(event.data);
                     if (data.type === 'user-id') {
                         this.userId = data.id;
-                        if (this.onUserIdReceived) {
-                            this.onUserIdReceived(this.userId);
-                        }
+                        this?.onUserIdReceived(this.userId);
                     } else if (data.type === 'message') {
-                        onMessageCallback(data);
+                        onMessage(data);
                     }
                 } catch (e) {
                     console.error('Error parsing message:', e);

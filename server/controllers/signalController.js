@@ -20,14 +20,13 @@ export function handleConnection(ws, wss) {
     console.log('Client connected');
     const userId = generateUniqueId();
 
-    ws.send(JSON.stringify({ type: 'user-id', id: userId }));
-
     ws.on('message', (message) => {
         const parsedMessage = JSON.parse(message);
         const { type, recipient, content, params } = parsedMessage;
 
         if (type === 'register') {
             registerClient(userId, ws);
+            ws.send(JSON.stringify({ type: 'user-id', id: userId }));
         } else if (type === 'message' && recipient && content && params) {
             sendMessage(recipient, content, params);
         }
