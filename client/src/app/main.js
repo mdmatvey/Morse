@@ -15,9 +15,7 @@ const connectionStatus = new ConnectionStatus('connectionStatus');
 let userId = '';
 
 const elements = {
-    serverAddress: document.getElementById('serverAddress'),
     userIdDisplay: document.getElementById('userIdDisplay'),
-    connectButton: document.getElementById('connectServer'),
     interfaceMode: document.getElementById('interfaceMode'),
     serviceInterface: document.getElementById('serviceInterface'),
     operationalInterface: document.getElementById('operationalInterface'),
@@ -32,44 +30,34 @@ const elements = {
     operationalInput: document.getElementById('operationalInput'),
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Обработчик переключения типа интерфейса
+document.addEventListener('DOMContentLoaded', async () => {
+    // Подключение к серверу
+    try {
+        connectionStatus.setConnecting();
+        network.onUserIdReceived = (id) => {
+            userId = id;
+            elements.userIdDisplay.textContent = `Студент-${userId}`;
+            connectionStatus.setConnected();
+        };
+        await network.connect(window.location.host, handleIncomingMessage);
+    } catch (error) {
+        connectionStatus.setError(error.message);
+        console.error('Ошибка подключения:', error);
+    }
+
+    // Обработчики кнопок
     elements.interfaceMode.addEventListener('change', toggleInterface);
-
-    // Обработчики сетевого интерфейса
-    elements.connectButton.addEventListener('click', handleConnect);
     elements.sendButton.addEventListener('click', handleSend);
-    network.onUserIdReceived = (id) => {
-        userId = id;
-        elements.userIdDisplay.textContent = `Студент-${userId}`;
-    };
+    elements.toneSelector.addEventListener('input', updateToneValue);
+    updateToneValue();
 
-    // Обработчики инпутов
+    // Обработчики полей ввода
     createInputFields('inputContainer', 10);
     setupInputHandlers();
     elements.groupSelector.addEventListener('change', updateInputs);
-
-    // Обработчик слайдера тональности
-    elements.toneSelector.addEventListener('input', updateToneValue);
-    updateToneValue();
 });
 
 document.addEventListener('keydown', focusNextInput);
-
-async function handleConnect() {
-    try {
-        connectionStatus.setConnecting();
-        await network.connect(
-            elements.serverAddress.value,
-            handleIncomingMessage,
-        );
-        connectionStatus.setConnected();
-        elements.connectButton.disabled = true;
-    } catch (error) {
-        connectionStatus.setError(error.message);
-        console.error('Connection error:', error);
-    }
-}
 
 function handleSend() {
     // Получаем адресата отправки

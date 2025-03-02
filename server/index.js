@@ -1,6 +1,7 @@
 import http from 'http';
 import { WebSocketServer } from 'ws';
 import { handleConnection } from './controllers/signalController.js';
+import { serveStatic } from './services/staticService.js';
 import os from 'os';
 
 const server = http.createServer();
@@ -16,8 +17,10 @@ function getLocalIP() {
     return 'localhost';
 }
 
+server.on('request', serveStatic);
+
 wss.on('connection', (ws) => handleConnection(ws, wss));
 
 server.listen(1337, () => {
-    console.log(`Сервер запущен по адресу ws://${getLocalIP()}:1337`);
+    console.log(`Сервер запущен по адресу http://${getLocalIP()}:1337`);
 });
