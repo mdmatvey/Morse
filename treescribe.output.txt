@@ -1,0 +1,410 @@
+Morse/
+├── .prettierrc
+├── README.md
+├── app-admin/
+│   ├── package.json
+│   ├── src/
+│   │   ├── index.html
+│   │   ├── main.js
+│   │   └── style.css
+│   └── vite.config.js
+├── package.json
+└── server/
+    ├── .babelrc
+    ├── controllers/
+    │   └── signalController.js
+    ├── index.js
+    ├── package.json
+    └── services/
+        ├── staticService.js
+        └── websocketService.js
+
+==================================================
+
+/Users/mdmatvey/Work/Morse/.prettierrc
+{
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "printWidth": 80,
+    "tabWidth": 4,
+    "arrowParens": "always"
+}
+
+--------------------------------------------------
+
+/Users/mdmatvey/Work/Morse/README.md
+# Morse
+
+--------------------------------------------------
+
+/Users/mdmatvey/Work/Morse/app-admin/package.json
+{
+    "scripts": {
+        "start": "npm run dev",
+        "dev": "source ~/.nvm/nvm.sh && nvm use 18 && vite",
+        "build": "source ~/.nvm/nvm.sh && nvm use 18 && vite build"
+    },
+    "devDependencies": {
+        "vite": "^6.0.11"
+    }
+}
+
+--------------------------------------------------
+
+/Users/mdmatvey/Work/Morse/app-admin/src/index.html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>Подключенные студенты</h1>
+    <ul id="students-list"></ul>
+    <script type="module" src="/main.js"></script>
+</body>
+</html>
+
+--------------------------------------------------
+
+/Users/mdmatvey/Work/Morse/app-admin/src/main.js
+const ws = new WebSocket(`ws://${window.location.host}/admin`);
+const list = document.getElementById('students-list');
+
+ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === 'student-list') {
+        list.innerHTML = data.students
+            .map((id) => `<li>Студент-${id}</li>`)
+            .join('');
+    }
+};
+
+ws.onopen = () => console.log('Connected to WebSocket');
+ws.onclose = () => console.log('Disconnected from WebSocket');
+
+--------------------------------------------------
+
+/Users/mdmatvey/Work/Morse/app-admin/src/style.css
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+--------------------------------------------------
+
+/Users/mdmatvey/Work/Morse/app-admin/vite.config.js
+import { defineConfig } from 'vite';
+import path from 'path';
+
+export default defineConfig({
+    root: path.resolve(__dirname, 'src'),
+    base: '/admin/',
+    server: {
+        port: 5173,
+        open: true,
+    },
+    build: {
+        outDir: '../../build/admin-static',
+        emptyOutDir: true,
+    },
+});
+
+--------------------------------------------------
+
+/Users/mdmatvey/Work/Morse/package.json
+{
+    "name": "morse-app",
+    "private": true,
+    "workspaces": [
+        "app-user",
+        "app-admin",
+        "server"
+    ],
+    "scripts": {
+        "start": "concurrently \"npm:start:app-user\" \"npm:start:server\"",
+        "start:app-user": "npm run dev --workspace=app-user",
+        "start:app-admin": "npm run dev --workspace=app-admin",
+        "start:server": "npm start --workspace=server",
+        "build": "npm run build --workspaces",
+        "format": "prettier --write ."
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2",
+        "prettier": "^3.0.0"
+    }
+}
+
+--------------------------------------------------
+
+/Users/mdmatvey/Work/Morse/server/.babelrc
+{
+    "presets": [
+        "@babel/preset-env"
+    ]
+}
+
+--------------------------------------------------
+
+/Users/mdmatvey/Work/Morse/server/controllers/signalController.js
+import {
+    registerClient,
+    unregisterClient,
+    sendMessage,
+    clients,
+} from '../services/websocketService.js';
+
+const usedIds = new Set();
+
+function generateUniqueId() {
+    let id;
+    do {
+        id = Math.floor(Math.random() * 100);
+    } while (usedIds.has(id));
+    usedIds.add(id);
+    return id;
+}
+
+export function handleConnection(ws, wss) {
+    console.log('Client connected');
+    const userId = generateUniqueId();
+
+    ws.on('message', (message) => {
+        const parsedMessage = JSON.parse(message);
+        const { type, recipient, content, params } = parsedMessage;
+
+        if (type === 'register') {
+            registerClient(userId, ws);
+            ws.send(JSON.stringify({ type: 'user-id', id: userId }));
+        } else if (type === 'message' && recipient && content && params) {
+            sendMessage(recipient, content, params);
+        }
+    });
+
+    ws.on('close', () => {
+        console.log('Client disconnected');
+        usedIds.delete(userId);
+        for (const id in clients) {
+            if (clients[id] === ws) {
+                unregisterClient(id);
+                break;
+            }
+        }
+    });
+}
+
+--------------------------------------------------
+
+/Users/mdmatvey/Work/Morse/server/index.js
+import http from 'http';
+import { WebSocketServer } from 'ws';
+import { handleConnection } from './controllers/signalController.js';
+import { serveStatic, setServerIP } from './services/staticService.js';
+import os from 'os';
+
+const server = http.createServer();
+const wss = new WebSocketServer({ server });
+
+function getLocalIP() {
+    const interfaces = os.networkInterfaces();
+    for (const iface of Object.values(interfaces)) {
+        for (const { family, internal, address } of iface) {
+            if (family === 'IPv4' && !internal) return address;
+        }
+    }
+    return 'localhost';
+}
+
+const localIP = getLocalIP();
+setServerIP(localIP); // Передаем локальный IP в staticService.js
+
+server.on('request', serveStatic);
+wss.on('connection', (ws) => handleConnection(ws, wss));
+
+server.listen(1337, () => {
+    console.log(`Сервер запущен по адресу http://${localIP}:1337`);
+});
+
+--------------------------------------------------
+
+/Users/mdmatvey/Work/Morse/server/package.json
+{
+    "name": "server",
+    "bin": "temp_dist/index.js",
+    "type": "module",
+    "pkg": {
+        "outputPath": "../build",
+        "targets": [
+            "node16-win-x64",
+            "node16-macos-x64",
+            "node16-linux-x64"
+        ],
+        "assets": [
+            "./node_modules/**/*",
+            "temp_dist/controllers/**/*",
+            "temp_dist/services/**/*"
+        ]
+    },
+    "scripts": {
+        "start": "node index.js",
+        "start:watch": "node --watch index.js",
+        "build:babel": "babel . --out-dir temp_dist",
+        "build:pkg": "pkg .",
+        "build": "source ~/.nvm/nvm.sh && nvm use 16 && npm run build:babel && npm run build:pkg && rm -rf temp_dist"
+    },
+    "dependencies": {
+        "ws": "^8.18.0"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.20.0",
+        "@babel/preset-env": "^7.20.0",
+        "@babel/cli": "^7.20.0"
+    }
+}
+
+--------------------------------------------------
+
+/Users/mdmatvey/Work/Morse/server/services/staticService.js
+import fs from 'fs';
+import path from 'path';
+
+const staticBasePath = path.dirname(process.execPath);
+const userStaticPath = path.resolve(staticBasePath, 'user-static');
+const adminStaticPath = path.resolve(staticBasePath, 'admin-static');
+
+const mimeTypes = {
+    '.html': 'text/html',
+    '.css': 'text/css',
+    '.js': 'application/javascript',
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.ico': 'image/x-icon',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2',
+    '.ttf': 'font/ttf',
+    '.eot': 'application/vnd.ms-fontobject',
+};
+
+// Вайтлист адресов, которым разрешен доступ к админке
+const whitelist = new Set(['localhost', '127.0.0.1']);
+
+// Функция для установки IP сервера в вайтлист
+export function setServerIP(ip) {
+    whitelist.add(ip);
+}
+
+export function serveStatic(req, res) {
+    let requestUrl = req.url;
+    let staticPath = userStaticPath;
+    const host = req.headers.host.split(':')[0];
+
+    // Проверяем, если запрос начинается с /admin
+    console.log(req.url);
+    if (req.url.startsWith('/admin')) {
+        req.url.replace('admin', 'admin-static');
+
+        if (!whitelist.has(host)) {
+            res.writeHead(403, { 'Content-Type': 'text/plain' });
+            res.end('403 Forbidden');
+            return;
+        }
+
+        const removeAdminPrefix = (path) =>
+            path.startsWith('/admin')
+                ? path.replace('/admin', '') || '/'
+                : path;
+
+        // Для админки ищем файлы в папке admin-static
+        staticPath = adminStaticPath;
+        requestUrl = removeAdminPrefix(req.url);
+    }
+
+    // Формируем полный путь к файлу
+    let filePath = path.join(
+        staticPath,
+        requestUrl === '/' ? 'index.html' : requestUrl,
+    );
+    console.log(filePath); // Для отладки
+
+    const extname = path.extname(filePath);
+    const contentType = mimeTypes[extname] || 'application/octet-stream';
+
+    fs.readFile(filePath, (err, data) => {
+        if (err) {
+            console.log(err);
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            res.end('404 Not Found');
+        } else {
+            res.writeHead(200, { 'Content-Type': contentType });
+            res.end(data);
+        }
+    });
+}
+
+--------------------------------------------------
+
+/Users/mdmatvey/Work/Morse/server/services/websocketService.js
+import { WebSocket } from 'ws';
+
+export const clients = {};
+export const adminClients = new Set();
+const connectedUsers = [];
+
+export function registerClient(id, ws) {
+    clients[id] = ws;
+    connectedUsers.push(id);
+    console.log(`Client registered: ${id}`);
+    notifyAdmins();
+}
+
+export function unregisterClient(id) {
+    delete clients[id];
+    const index = connectedUsers.indexOf(Number(id));
+    if (index !== -1) {
+        connectedUsers.splice(index, 1);
+        console.log(`Client unregistered: ${id}`);
+        notifyAdmins();
+    }
+}
+
+export function sendMessage(recipient, content, params) {
+    const recipientWs = clients[recipient];
+    if (recipientWs?.readyState === WebSocket.OPEN) {
+        recipientWs.send(JSON.stringify({ type: 'message', content, params }));
+    } else {
+        console.log(`Recipient ${recipient} not found or not ready`);
+    }
+}
+
+export function registerAdmin(ws) {
+    adminClients.add(ws);
+    console.log(`Admin connected`);
+    ws.send(JSON.stringify({ type: 'student-list', students: connectedUsers }));
+
+    ws.on('close', () => {
+        adminClients.delete(ws);
+        console.log(`Admin disconnected`);
+    });
+}
+
+function notifyAdmins() {
+    const message = JSON.stringify({
+        type: 'student-list',
+        students: connectedUsers,
+    });
+    adminClients.forEach((ws) => {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(message);
+        }
+    });
+}
+
+--------------------------------------------------
+
