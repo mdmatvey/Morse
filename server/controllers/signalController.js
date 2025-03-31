@@ -16,17 +16,21 @@ function generateUniqueId() {
     return id;
 }
 
-export function handleConnection(ws, wss) {
+export function handleConnection(ws, req) {
     console.log('Client connected');
-    const userId = generateUniqueId();
+
+    const isAdmin = req.url.includes('/admin');
+    const userId = isAdmin ? `admin-${Date.now()}` : generateUniqueId();
 
     ws.on('message', (message) => {
         const parsedMessage = JSON.parse(message);
         const { type, recipient, content, params } = parsedMessage;
 
         if (type === 'register') {
-            registerClient(userId, ws);
-            ws.send(JSON.stringify({ type: 'user-id', id: userId }));
+            registerClient(userId, ws, isAdmin);
+            if (!isAdmin) {
+                ws.send(JSON.stringify({ type: 'user-id', id: userId }));
+            }
         } else if (type === 'message' && recipient && content && params) {
             sendMessage(recipient, content, params);
         }
@@ -35,11 +39,6 @@ export function handleConnection(ws, wss) {
     ws.on('close', () => {
         console.log('Client disconnected');
         usedIds.delete(userId);
-        for (const id in clients) {
-            if (clients[id] === ws) {
-                unregisterClient(id);
-                break;
-            }
-        }
+        unregisterClient(userId, ws);
     });
 }

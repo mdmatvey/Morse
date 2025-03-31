@@ -1,21 +1,35 @@
 import { WebSocket } from 'ws';
 
 export const clients = {};
-const connectedUsers = [];
+const connectedUsers = new Set();
+const adminClients = new Set();
 
-export function registerClient(id, ws) {
+export function registerClient(id, ws, isAdmin = false) {
     clients[id] = ws;
-    connectedUsers.push(id);
-    console.log(`Client registered: ${id}`);
+
+    if (isAdmin) {
+        adminClients.add(ws);
+        sendConnectedUsersToAdmins(); // Отправляем список студентов сразу после подключения
+    } else {
+        connectedUsers.add(id);
+        console.log(`Client registered: ${id}`);
+        sendConnectedUsersToAdmins(); // Отправляем обновленный список админам
+    }
 }
 
-export function unregisterClient(id) {
+export function unregisterClient(id, ws) {
     delete clients[id];
-    const index = connectedUsers.indexOf(Number(id));
-    if (index !== -1) {
-        connectedUsers.splice(index, 1);
+
+    if (connectedUsers.has(id)) {
+        connectedUsers.delete(id);
         console.log(`Client unregistered: ${id}`);
     }
+
+    if (adminClients.has(ws)) {
+        adminClients.delete(ws);
+    }
+
+    sendConnectedUsersToAdmins(); // Обновляем список студентов у админов
 }
 
 export function sendMessage(recipient, content, params) {
@@ -25,4 +39,18 @@ export function sendMessage(recipient, content, params) {
     } else {
         console.log(`Recipient ${recipient} not found or not ready`);
     }
+}
+
+function sendConnectedUsersToAdmins() {
+    const userList = Array.from(connectedUsers);
+    const message = JSON.stringify({
+        type: 'student-list',
+        students: userList,
+    });
+
+    adminClients.forEach((adminWs) => {
+        if (adminWs.readyState === WebSocket.OPEN) {
+            adminWs.send(message);
+        }
+    });
 }

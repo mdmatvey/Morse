@@ -18,10 +18,10 @@ function getLocalIP() {
 }
 
 const localIP = getLocalIP();
-setServerIP(localIP); // Передаем локальный IP в staticService.js
+setServerIP(localIP);
 
 server.on('request', serveStatic);
-wss.on('connection', (ws) => handleConnection(ws, wss));
+wss.on('connection', (ws, req) => handleConnection(ws, req)); // Передаем req
 
 server.listen(1337, () => {
     console.log(`Сервер запущен по адресу http://${localIP}:1337`);
