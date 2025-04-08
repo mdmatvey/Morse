@@ -6,6 +6,7 @@ import {
     getInputValues,
 } from '../ui/components/inputs.js';
 import { ConnectionStatus } from '../ui/components/connectionStatus.js';
+import { UserStatusIndicator } from '../ui/components/UserStatusIndicator.js';
 import { focusNextInput } from '../ui/utils/focusNextInput.js';
 import { textToMorse } from '../core/morse/converter.js';
 import { SPEED_CONFIG } from '../core/morse/constants.js';
@@ -13,7 +14,12 @@ import { SPEED_CONFIG } from '../core/morse/constants.js';
 const network = new NetworkService();
 const morseAudioPlayer = new MorseAudioPlayer();
 const connectionStatus = new ConnectionStatus('connectionStatus');
+const userStatusIndicator = new UserStatusIndicator('userStatusIndicator');
 let userId = '';
+let leftTimer = null;
+let rightTimer = null;
+let statusCheckInterval = null;
+let currentRecipientId = null;
 
 const elements = {
     userIdDisplay: document.getElementById('userIdDisplay'),
@@ -36,15 +42,12 @@ const elements = {
     letterPauseInput: document.getElementById('letterPause'),
     groupPauseInput: document.getElementById('groupPause'),
     shortZeroCheckbox: document.getElementById('shortZero'),
-    sendButton: document.getElementById('sendSignal'),
+    sendButton: document.getElementById('sendButton'),
 
     semiInterval: document.getElementById('semiInterval'),
     semiDot: document.getElementById('semiDot'),
     semiDash: document.getElementById('semiDash'),
 };
-
-let leftTimer = null;
-let rightTimer = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -74,22 +77,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         createInputFields('inputContainer', parseInt(e.target.value)),
     );
 
+    elements.recipientId.addEventListener('input', handleRecipientChange);
+
     document.addEventListener('keydown', handleSemiKeyDown);
     document.addEventListener('keyup', handleSemiKeyUp);
+    document.addEventListener('keydown', focusNextInput);
 
     toggleKeyInterface();
     toggleExchangeInterface();
-    document.addEventListener('keydown', focusNextInput);
 });
 
 function toggleKeyInterface() {
     const isAuto = elements.keyType.value === 'auto';
-    // скрываем/показываем все элементы стандартного режима:
     elements.exchangeContainer.classList.toggle('hidden', !isAuto);
     elements.controlsContainer.classList.toggle('hidden', !isAuto);
-    // скрываем/показываем блок выбора формата обмена
     elements.interfaceSwitcher.classList.toggle('hidden', !isAuto);
-    // показываем/скрываем полуавтоматический интерфейс
     elements.semiAutoInterface.classList.toggle('hidden', isAuto);
 }
 
@@ -127,12 +129,25 @@ function handleSend() {
 }
 
 function handleIncomingMessage(data) {
-    const { speed, tone, letterPause, groupPause } = data.params;
-    const baseDuration = SPEED_CONFIG.BASE_UNIT / speed;
+    const { speed, tone, letterPause, groupPause, shortZero } = data.params;
+    const morseSequence = textToMorse(data.content, shortZero);
+
+    // Логирование
+    try {
+        const dataArray = data.content.split(' ');
+        const messageHeader = dataArray.slice(0, 7).join(' ');
+        const messageText = dataArray.slice(8, -3).join(' ');
+        const messageFooter = dataArray.slice(-3).join(' ');
+        console.log('Сообщение:', data.content);
+        console.log('------------------');
+        console.log('Заголовок:', messageHeader);
+        console.log('Сообщение:', messageText);
+        console.log('Конец:', messageFooter);
+    } catch {}
 
     morseAudioPlayer.playSequence(
-        data.content,
-        baseDuration,
+        morseSequence,
+        SPEED_CONFIG.BASE_UNIT / speed,
         tone,
         letterPause,
         groupPause,
@@ -218,4 +233,47 @@ function sendAndPlay(symbol, recipient, params, baseDuration) {
         params.letterPause,
         params.groupPause,
     );
+}
+
+// === Индикатор статуса получателя ===
+function handleRecipientChange(e) {
+    const recipientInput = e.target.value;
+    const recipientMatch = recipientInput.match(/\d+/);
+    const recipientId = recipientMatch ? recipientMatch[0] : null;
+
+    if (recipientId === currentRecipientId) return;
+
+    currentRecipientId = recipientId;
+
+    if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+        statusCheckInterval = null;
+    }
+
+    if (recipientId) {
+        userStatusIndicator.setUnknown();
+        checkRecipientStatus(recipientId);
+        statusCheckInterval = setInterval(() => {
+            checkRecipientStatus(recipientId);
+        }, 5000);
+    } else {
+        userStatusIndicator.setUnknown();
+    }
+}
+
+async function checkRecipientStatus(recipientId) {
+    try {
+        const isOnline = await network.checkUserStatus(recipientId);
+        if (isOnline) {
+            userStatusIndicator.setOnline();
+        } else {
+            userStatusIndicator.setOffline();
+        }
+    } catch (error) {
+        console.error(
+            `Ошибка проверки статуса корреспондента ${recipientId}`,
+            error,
+        );
+        userStatusIndicator.setUnknown();
+    }
 }
