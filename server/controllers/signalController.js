@@ -3,6 +3,7 @@ import {
     unregisterClient,
     sendMessage,
     clients,
+    checkUserStatus,
 } from '../services/websocketService.js';
 
 const usedIds = new Set();
@@ -24,7 +25,7 @@ export function handleConnection(ws, req) {
 
     ws.on('message', (message) => {
         const parsedMessage = JSON.parse(message);
-        const { type, recipient, content, params } = parsedMessage;
+        const { type, recipient, content, params, checkUserId } = parsedMessage;
 
         if (type === 'register') {
             registerClient(userId, ws, isAdmin);
@@ -33,6 +34,16 @@ export function handleConnection(ws, req) {
             }
         } else if (type === 'message' && recipient && content && params) {
             sendMessage(recipient, content, params);
+        } else if (type === 'status-check' && checkUserId) {
+            // Отвечаем на запрос проверки статуса пользователя
+            const isOnline = checkUserStatus(checkUserId);
+            ws.send(
+                JSON.stringify({
+                    type: 'status-response',
+                    userId: checkUserId,
+                    online: isOnline,
+                }),
+            );
         }
     });
 

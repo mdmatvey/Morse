@@ -52,7 +52,9 @@ export function registerClient(id, ws, isAdmin = false) {
         sendConnectedUsersToAdmins(); // Отправляем список студентов
         sendConnectionLogsToAdmins(); // Отправляем логи подключений
     } else {
-        connectedUsers.add(id);
+        // Преобразуем id в число для единообразия
+        const numericId = parseInt(id, 10);
+        connectedUsers.add(numericId);
         console.log(`Client registered: ${id}`);
         // Добавляем запись о подключении в журнал
         addLogEntry('connect', id);
@@ -63,8 +65,8 @@ export function registerClient(id, ws, isAdmin = false) {
 export function unregisterClient(id, ws) {
     delete clients[id];
 
-    if (connectedUsers.has(id)) {
-        connectedUsers.delete(id);
+    if (connectedUsers.has(parseInt(id, 10))) {
+        connectedUsers.delete(parseInt(id, 10));
         console.log(`Client unregistered: ${id}`);
         // Добавляем запись об отключении в журнал
         addLogEntry('disconnect', id);
@@ -86,8 +88,15 @@ export function sendMessage(recipient, content, params) {
     }
 }
 
+// Проверяет, находится ли пользователь в сети
+export function checkUserStatus(userId) {
+    // Преобразуем userId в число, так как в Set храним числа
+    const numericId = parseInt(userId, 10);
+    return connectedUsers.has(numericId);
+}
+
 function sendConnectedUsersToAdmins() {
-    const userList = Array.from(connectedUsers);
+    const userList = Array.from(connectedUsers).map((id) => id.toString());
     const message = JSON.stringify({
         type: 'student-list',
         students: userList,

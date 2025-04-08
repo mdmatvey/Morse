@@ -6,13 +6,17 @@ import {
     getInputValues,
 } from '../ui/components/inputs.js';
 import { ConnectionStatus } from '../ui/components/connectionStatus.js';
+import { UserStatusIndicator } from '../ui/components/UserStatusIndicator.js';
 import { focusNextInput } from '../ui/utils/focusNextInput.js';
 import { textToMorse } from '../core/morse/converter.js';
 
 const network = new NetworkService();
 const morseAudioPlayer = new MorseAudioPlayer();
 const connectionStatus = new ConnectionStatus('connectionStatus');
+const userStatusIndicator = new UserStatusIndicator('userStatusIndicator');
 let userId = '';
+let statusCheckInterval = null;
+let currentRecipientId = null;
 
 const elements = {
     userIdDisplay: document.getElementById('userIdDisplay'),
@@ -26,8 +30,9 @@ const elements = {
     letterPauseInput: document.getElementById('letterPause'),
     groupPauseInput: document.getElementById('groupPause'),
     shortZeroCheckbox: document.querySelector('input[type="checkbox"]'),
-    sendButton: document.getElementById('sendSignal'),
+    sendButton: document.getElementById('sendButton'),
     operationalInput: document.getElementById('operationalInput'),
+    recipientId: document.getElementById('recipientId'),
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -45,6 +50,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Ошибка подключения:', error);
     }
 
+    // Добавляем обработчик изменения поля ввода получателя
+    elements.recipientId.addEventListener('input', handleRecipientChange);
+
     // Обработчики кнопок
     elements.interfaceMode.addEventListener('change', toggleInterface);
     elements.sendButton.addEventListener('click', handleSend);
@@ -58,6 +66,57 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 document.addEventListener('keydown', focusNextInput);
+
+// Функция для обработки изменения получателя
+function handleRecipientChange(e) {
+    const recipientInput = e.target.value;
+    const recipientMatch = recipientInput.match(/\d+/);
+    const recipientId = recipientMatch ? recipientMatch[0] : null;
+
+    // Если ID получателя не изменился, не проверяем статус повторно
+    if (recipientId === currentRecipientId) return;
+
+    currentRecipientId = recipientId;
+
+    // Очищаем предыдущий интервал проверки статуса
+    if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+        statusCheckInterval = null;
+    }
+
+    // Если есть ID получателя, начинаем проверять его статус
+    if (recipientId) {
+        userStatusIndicator.setUnknown();
+
+        // Проверяем статус сразу
+        checkRecipientStatus(recipientId);
+
+        // Устанавливаем интервал для периодической проверки статуса
+        statusCheckInterval = setInterval(() => {
+            checkRecipientStatus(recipientId);
+        }, 5000); // Проверяем каждые 5 секунд
+    } else {
+        userStatusIndicator.setUnknown();
+    }
+}
+
+// Функция для проверки статуса получателя
+async function checkRecipientStatus(recipientId) {
+    try {
+        const isOnline = await network.checkUserStatus(recipientId);
+        if (isOnline) {
+            userStatusIndicator.setOnline();
+        } else {
+            userStatusIndicator.setOffline();
+        }
+    } catch (error) {
+        console.error(
+            `Ошибка проверки статуса корреспондента ${recipientId}`,
+            error,
+        );
+        userStatusIndicator.setUnknown();
+    }
+}
 
 function handleSend() {
     // Получаем адресата отправки
