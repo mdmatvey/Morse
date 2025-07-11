@@ -5,6 +5,8 @@
         "build": "source ~/.nvm/nvm.sh && nvm use 18 && vite build"
     },
     "devDependencies": {
+        "@rollup/rollup-darwin-x64": "^4.44.2",
+        "rollup": "^4.44.2",
         "vite": "^6.0.11"
     }
 }
