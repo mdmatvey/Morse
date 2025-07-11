@@ -1,4 +1,5 @@
-const ws = new WebSocket(`ws://${window.location.host}/admin`);
+const wsServer = __WS_SERVER__ || window.location.host;
+const ws = new WebSocket(`ws://${wsServer}/admin`);
 const studentsList = document.getElementById('students-list');
 const logsList = document.getElementById('logs-list');
 

@@ -16,8 +16,7 @@
         ]
     },
     "scripts": {
-        "start": "node index.js",
-        "start:watch": "node --watch index.js",
+        "start": "node --watch index.js",
         "build:babel": "babel . --out-dir temp_dist",
         "build:pkg": "pkg .",
         "build": "source ~/.nvm/nvm.sh && nvm use 16 && npm run build:babel && npm run build:pkg && rm -rf temp_dist"
