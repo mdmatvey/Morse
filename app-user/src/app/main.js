@@ -39,7 +39,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.userIdDisplay.textContent = `Студент-${userId}`;
             connectionStatus.setConnected();
         };
-        await network.connect(window.location.host, handleIncomingMessage);
+        const wsServer = __WS_SERVER__ || window.location.host;
+        await network.connect(wsServer, handleIncomingMessage);
     } catch (error) {
         connectionStatus.setError(error.message);
         console.error('Ошибка подключения:', error);
