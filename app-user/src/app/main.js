@@ -5,13 +5,16 @@ import {
     createInputFields,
     getInputValues,
 } from '../ui/components/inputs.js';
-import { ConnectionStatus } from '../ui/components/connectionStatus.js';
+import { ConnectionStatus } from '../ui/components/ConnectionStatus.js';
 import { focusNextInput } from '../ui/utils/focusNextInput.js';
 import { textToMorse } from '../core/morse/converter.js';
 
 const network = new NetworkService();
 const morseAudioPlayer = new MorseAudioPlayer();
-const connectionStatus = new ConnectionStatus('connectionStatus');
+
+const serverStatus = new ConnectionStatus('connectionStatus');
+const peerStatus = new ConnectionStatus('peerStatus');
+
 let userId = '';
 
 const elements = {
@@ -28,52 +31,61 @@ const elements = {
     shortZeroCheckbox: document.querySelector('input[type="checkbox"]'),
     sendButton: document.getElementById('sendSignal'),
     operationalInput: document.getElementById('operationalInput'),
+    connectBtn: document.getElementById('connectBtn'),
+    recipientInput: document.getElementById('recipientId'),
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Подключение к серверу
+    // 1) Подключение к серверу
     try {
-        connectionStatus.setConnecting();
+        serverStatus.setConnecting();
         network.onUserIdReceived = (id) => {
             userId = id;
             elements.userIdDisplay.textContent = `Студент-${userId}`;
-            connectionStatus.setConnected();
+            serverStatus.setConnected();
+        };
+        network.onPeerStatusReceived = (status) => {
+            if (status === 'waiting') peerStatus.setConnecting();
+            else if (status === 'connected') peerStatus.setConnected();
+            else peerStatus.setError();
         };
         const wsServer = __WS_SERVER__ || window.location.host;
         await network.connect(wsServer, handleIncomingMessage);
     } catch (error) {
-        connectionStatus.setError(error.message);
+        serverStatus.setError(error.message);
         console.error('Ошибка подключения:', error);
     }
 
-    // Обработчики кнопок
+    // 2) Обработчики UI
     elements.interfaceMode.addEventListener('change', toggleInterface);
     elements.sendButton.addEventListener('click', handleSend);
     elements.toneSelector.addEventListener('input', updateToneValue);
+    elements.connectBtn.addEventListener('click', handleConnect);
     updateToneValue();
-
-    // Обработчики полей ввода
     createInputFields('inputContainer', 10);
     setupInputHandlers();
-    elements.groupSelector.addEventListener('change', updateInputs);
+    elements.groupSelector.addEventListener('change', (e) =>
+        createInputFields('inputContainer', parseInt(e.target.value)),
+    );
+    document.addEventListener('keydown', focusNextInput);
 });
 
-document.addEventListener('keydown', focusNextInput);
-
-function handleSend() {
-    // Получаем адресата отправки
-    const recipientInput = document.getElementById('recipientId').value;
-    const recipient = recipientInput.match(/\d+/)?.[0] || '';
-
+function handleConnect() {
+    const recipient = elements.recipientInput.value.match(/\d+/)?.[0] || '';
     if (!recipient) {
-        alert('Укажите корректный ID получателя в формате "Студент-123"');
+        alert('Укажите корректный ID корреспондента в формате "Студент-123"');
         return;
     }
+    network.requestPeerConnection(recipient);
+}
 
-    // Формируем сообщение
+function handleSend() {
+    const recipient = elements.recipientInput.value.match(/\d+/)?.[0] || '';
+    if (!recipient) {
+        alert('Укажите корректный ID получателя');
+        return;
+    }
     const content = getInputValues(elements.interfaceMode.value);
-
-    // Получаем параметры
     const params = {
         speed: parseInt(elements.speedSelector.value),
         tone: parseInt(elements.toneSelector.value),
@@ -81,38 +93,35 @@ function handleSend() {
         groupPause: parseInt(elements.groupPauseInput.value),
         shortZero: elements.shortZeroCheckbox.checked,
     };
-
-    // Отправляем с текущим recipientId
     network.sendMessage(recipient, content, params);
 }
 
 function handleIncomingMessage(data) {
-    // Получаем параметры воспроизведения и кодируем текст в морзе
-    const { speed, tone, letterPause, groupPause, shortZero } = data.params;
-    const morseSequence = textToMorse(data.content, shortZero);
+    if (data.type === 'message') {
+        const { speed, tone, letterPause, groupPause, shortZero } = data.params;
+        const morseSequence = textToMorse(data.content, shortZero);
+        morseAudioPlayer.playSequence(
+            morseSequence,
+            speed,
+            tone,
+            letterPause,
+            groupPause,
+        );
 
-    /* логирование */
-    try {
-        const dataArray = data.content.split(' ');
-        const messageHeader = dataArray.slice(0, 7).join(' ');
-        const messageText = dataArray.slice(8, -3).join(' ');
-        const messageFooter = dataArray.slice(-3).join(' ');
-        console.log('Сообщение:', data.content);
-        console.log('------------------');
-        console.log('Заголовок:', messageHeader);
-        console.log('Сообщение:', messageText);
-        console.log('Конец:', messageFooter);
-    } catch {}
-    /* логирование */
-
-    // Запускаем воспроизведение полученного сообщения с заданными параметрами
-    morseAudioPlayer.playSequence(
-        morseSequence,
-        speed,
-        tone,
-        letterPause,
-        groupPause,
-    );
+        /* логирование */
+        try {
+            const dataArray = data.content.split(' ');
+            const messageHeader = dataArray.slice(0, 7).join(' ');
+            const messageText = dataArray.slice(8, -3).join(' ');
+            const messageFooter = dataArray.slice(-3).join(' ');
+            console.log('Сообщение:', data.content);
+            console.log('------------------');
+            console.log('Заголовок:', messageHeader);
+            console.log('Сообщение:', messageText);
+            console.log('Конец:', messageFooter);
+        } catch {}
+        /* логирование */
+    }
 }
 
 function toggleInterface() {
@@ -127,12 +136,6 @@ function toggleInterface() {
     }
 }
 
-function updateInputs(e) {
-    createInputFields('inputContainer', parseInt(e.target.value));
-}
-
 function updateToneValue() {
-    // Обновляем отображаемое значение слайдера тональности
-    const tone = elements.toneSelector.value;
-    elements.toneValue.textContent = `${tone} Гц`;
+    elements.toneValue.textContent = `${elements.toneSelector.value} Гц`;
 }

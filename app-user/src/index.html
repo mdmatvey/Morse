@@ -1,23 +1,38 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
     <head>
         <title>Передача радиограммы</title>
-        <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <link rel="stylesheet" href="ui/styles/main.css"/>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="ui/styles/main.css" />
     </head>
     <body>
         <div class="main">
             <div class="three-row-container">
                 <div class="first-row-container">
-                    <p><strong>Ваш ID:</strong> <span id="userIdDisplay"></span></p>
-                    <p><strong>Соединение:</strong> <span id="connectionStatus" class="notification">не подключено</span></p>
+                    <p>
+                        <strong>Ваш ID:</strong>
+                        <span id="userIdDisplay"></span>
+                    </p>
+                    <p>
+                        <strong>Сервер:</strong>
+                        <span id="connectionStatus" class="notification"
+                            >не подключено</span
+                        >
+                    </p>
+                    <p>
+                        <strong>Корреспондент:</strong>
+                        <span id="peerStatus" class="notification"
+                            >не подключено</span
+                        >
+                    </p>
                 </div>
 
                 <div class="second-row-container">
                     <div class="label-wrapper">
                         <label for="recipientId">ID корреспондента:</label>
                         <input type="text" id="recipientId" value="Студент-" />
+                        <button id="connectBtn">Подключиться</button>
                     </div>
 
                     <div class="interface-switcher label-wrapper">
@@ -41,32 +56,102 @@
                                 <option value="30">30</option>
                             </select>
                         </div>
-    
+
                         <div class="service-fields row-1">
-                            <input type="text" placeholder="" maxlength="10" class="message-input" />
-                            <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number" />
-                            <input type="text" placeholder="" maxlength="2" inputmode="numeric" class="message-input number" />
-                            <input type="text" placeholder="" maxlength="4" inputmode="numeric" class="message-input number" />
-                            <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number" />
+                            <input
+                                type="text"
+                                placeholder=""
+                                maxlength="10"
+                                class="message-input"
+                            />
+                            <input
+                                type="text"
+                                placeholder=""
+                                maxlength="3"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
+                            <input
+                                type="text"
+                                placeholder=""
+                                maxlength="2"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
+                            <input
+                                type="text"
+                                placeholder=""
+                                maxlength="4"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
+                            <input
+                                type="text"
+                                placeholder=""
+                                maxlength="3"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
                             <span>=</span>
-                            <input type="text" placeholder="" maxlength="3" type="text" inputmode="numeric" class="message-input" />
-                            <input type="text" placeholder="" maxlength="6" inputmode="numeric" class="message-input number" />
-                            <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number" />
+                            <input
+                                type="text"
+                                placeholder=""
+                                maxlength="3"
+                                type="text"
+                                inputmode="numeric"
+                                class="message-input"
+                            />
+                            <input
+                                type="text"
+                                placeholder=""
+                                maxlength="6"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
+                            <input
+                                type="text"
+                                placeholder=""
+                                maxlength="3"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
                             <span>=</span>
                         </div>
-    
+
                         <div id="inputContainer"></div>
-    
+
                         <div class="service-fields row-3">
-                            <input type="text" placeholder="" maxlength="5" inputmode="numeric" class="message-input number" />
-                            <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number" />
-                            <input type="text" placeholder="" maxlength="4" inputmode="numeric" class="message-input" />
+                            <input
+                                type="text"
+                                placeholder=""
+                                maxlength="5"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
+                            <input
+                                type="text"
+                                placeholder=""
+                                maxlength="3"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
+                            <input
+                                type="text"
+                                placeholder=""
+                                maxlength="4"
+                                inputmode="numeric"
+                                class="message-input"
+                            />
                         </div>
                     </div>
                 </div>
-    
+
                 <div id="operationalInterface" class="hidden">
-                    <textarea placeholder="Введите сообщение..." id="operationalInput" class="message-input"></textarea>
+                    <textarea
+                        placeholder="Введите сообщение..."
+                        id="operationalInput"
+                        class="message-input"
+                    ></textarea>
                 </div>
             </div>
 
@@ -85,7 +170,13 @@
 
                     <div class="tone-selector-container">
                         <label for="toneSelector">Тональность:</label>
-                        <input type="range" id="toneSelector" min="600" max="1200" value="600" />
+                        <input
+                            type="range"
+                            id="toneSelector"
+                            min="600"
+                            max="1200"
+                            value="600"
+                        />
                         <span id="toneValue"></span>
                     </div>
                 </div>
@@ -93,13 +184,25 @@
                 <div class="control-column">
                     <div class="label-wrapper">
                         <label for="letterPause">Пауза между знаками:</label>
-                        <input type="text" maxlength="4" value="300" id="letterPause" class="number" />
+                        <input
+                            type="text"
+                            maxlength="4"
+                            value="300"
+                            id="letterPause"
+                            class="number"
+                        />
                         <span>мс</span>
                     </div>
 
                     <div class="label-wrapper">
                         <label for="groupPause">Пауза между группами:</label>
-                        <input type="text" maxlength="4" value="600" id="groupPause" class="number" />
+                        <input
+                            type="text"
+                            maxlength="4"
+                            value="600"
+                            id="groupPause"
+                            class="number"
+                        />
                         <span>мс</span>
                     </div>
                 </div>
@@ -107,7 +210,7 @@
                 <div class="control-column">
                     <div class="label-wrapper checkbox">
                         <label for="groupPause">Короткий ноль:</label>
-                        <input type="checkbox" id="shortZero">
+                        <input type="checkbox" id="shortZero" />
                     </div>
 
                     <button id="sendSignal">Отправить радиограмму</button>

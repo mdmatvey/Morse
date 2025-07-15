@@ -3,6 +3,7 @@ export class NetworkService {
         this.ws = null;
         this.userId = null;
         this.onUserIdReceived = null;
+        this.onPeerStatusReceived = null;
     }
 
     connect(serverUrl, onMessage) {
@@ -19,7 +20,9 @@ export class NetworkService {
                     const data = JSON.parse(event.data);
                     if (data.type === 'user-id') {
                         this.userId = data.id;
-                        this?.onUserIdReceived(this.userId);
+                        this.onUserIdReceived?.(this.userId);
+                    } else if (data.type === 'connect-status') {
+                        this.onPeerStatusReceived?.(data.status);
                     } else if (data.type === 'message') {
                         onMessage(data);
                     }
@@ -32,15 +35,25 @@ export class NetworkService {
         });
     }
 
-    sendMessage(recipient, content, params) {
-        const message = {
-            type: 'message',
-            id: this.userId,
-            recipient: recipient,
-            content,
-            params,
-        };
+    requestPeerConnection(targetId) {
+        this.ws.send(
+            JSON.stringify({
+                type: 'connect',
+                id: this.userId,
+                target: targetId,
+            }),
+        );
+    }
 
-        this.ws.send(JSON.stringify(message));
+    sendMessage(recipient, content, params) {
+        this.ws.send(
+            JSON.stringify({
+                type: 'message',
+                id: this.userId,
+                recipient,
+                content,
+                params,
+            }),
+        );
     }
 }

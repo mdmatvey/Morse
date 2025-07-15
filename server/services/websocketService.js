@@ -4,6 +4,7 @@ export const clients = {};
 const connectedUsers = new Set();
 const adminClients = new Set();
 const connectionLogs = [];
+const pendingConnections = new Map(); // userId (строка) → targetId (строка)
 const MAX_LOGS = 100; // Максимальное количество логов для хранения
 
 // Функция для форматирования времени
@@ -25,64 +26,56 @@ function addLogEntry(event, userId) {
         message = `Студент-${userId} отключился`;
     }
 
-    const logEntry = {
-        event,
-        userId,
-        message,
-        timestamp,
-    };
-
-    // Добавляем запись в начало массива
+    const logEntry = { event, userId, message, timestamp };
     connectionLogs.unshift(logEntry);
 
-    // Ограничиваем размер массива логов
     if (connectionLogs.length > MAX_LOGS) {
         connectionLogs.pop();
     }
 
-    // Отправляем обновленные логи всем админам
     sendConnectionLogsToAdmins();
 }
 
 export function registerClient(id, ws, isAdmin = false) {
-    clients[id] = ws;
+    const key = String(id);
+    clients[key] = ws;
 
     if (isAdmin) {
         adminClients.add(ws);
-        sendConnectedUsersToAdmins(); // Отправляем список студентов
-        sendConnectionLogsToAdmins(); // Отправляем логи подключений
+        sendConnectedUsersToAdmins();
+        sendConnectionLogsToAdmins();
     } else {
-        connectedUsers.add(id);
-        console.log(`Client registered: ${id}`);
-        // Добавляем запись о подключении в журнал
-        addLogEntry('connect', id);
-        sendConnectedUsersToAdmins(); // Отправляем обновленный список админам
+        connectedUsers.add(key);
+        console.log(`Client registered: ${key}`);
+        addLogEntry('connect', key);
+        sendConnectedUsersToAdmins();
     }
 }
 
 export function unregisterClient(id, ws) {
-    delete clients[id];
+    const key = String(id);
+    delete clients[key];
 
-    if (connectedUsers.has(id)) {
-        connectedUsers.delete(id);
-        console.log(`Client unregistered: ${id}`);
-        // Добавляем запись об отключении в журнал
-        addLogEntry('disconnect', id);
+    if (connectedUsers.has(key)) {
+        connectedUsers.delete(key);
+        console.log(`Client unregistered: ${key}`);
+        addLogEntry('disconnect', key);
     }
 
     if (adminClients.has(ws)) {
         adminClients.delete(ws);
     }
 
-    sendConnectedUsersToAdmins(); // Обновляем список студентов у админов
+    sendConnectedUsersToAdmins();
 }
 
 export function sendMessage(recipient, content, params) {
-    const recipientWs = clients[recipient];
+    const recipientKey = String(recipient);
+    const recipientWs = clients[recipientKey];
     if (recipientWs?.readyState === WebSocket.OPEN) {
         recipientWs.send(JSON.stringify({ type: 'message', content, params }));
     } else {
-        console.log(`Recipient ${recipient} not found or not ready`);
+        console.log(`Recipient ${recipientKey} not found or not ready`);
     }
 }
 
@@ -92,11 +85,8 @@ function sendConnectedUsersToAdmins() {
         type: 'student-list',
         students: userList,
     });
-
     adminClients.forEach((adminWs) => {
-        if (adminWs.readyState === WebSocket.OPEN) {
-            adminWs.send(message);
-        }
+        if (adminWs.readyState === WebSocket.OPEN) adminWs.send(message);
     });
 }
 
@@ -105,10 +95,31 @@ function sendConnectionLogsToAdmins() {
         type: 'connection-logs',
         logs: connectionLogs,
     });
-
     adminClients.forEach((adminWs) => {
-        if (adminWs.readyState === WebSocket.OPEN) {
-            adminWs.send(message);
-        }
+        if (adminWs.readyState === WebSocket.OPEN) adminWs.send(message);
     });
+}
+
+export function requestConnection(id, target) {
+    const idKey = String(id);
+    const targetKey = String(target);
+
+    pendingConnections.set(idKey, targetKey);
+
+    // если второй участник уже ждал именно вас
+    if (pendingConnections.get(targetKey) === idKey) {
+        const ws1 = clients[idKey];
+        const ws2 = clients[targetKey];
+        [ws1, ws2].forEach((ws) =>
+            ws?.send(
+                JSON.stringify({ type: 'connect-status', status: 'connected' }),
+            ),
+        );
+        pendingConnections.delete(idKey);
+        pendingConnections.delete(targetKey);
+    } else {
+        // первый запрос — помечаем ожидание
+        const ws = clients[idKey];
+        ws?.send(JSON.stringify({ type: 'connect-status', status: 'waiting' }));
+    }
 }
