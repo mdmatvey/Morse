@@ -1,17 +1,25 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
     <head>
         <title>Передача радиограммы</title>
-        <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <link rel="stylesheet" href="ui/styles/main.css"/>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="ui/styles/main.css" />
     </head>
     <body>
         <div class="main">
             <div class="three-row-container">
                 <div class="first-row-container">
-                    <p><strong>Ваш ID:</strong> <span id="userIdDisplay"></span></p>
-                    <p><strong>Соединение:</strong> <span id="connectionStatus" class="notification">не подключено</span></p>
+                    <p>
+                        <strong>Ваш ID:</strong>
+                        <span id="userIdDisplay"></span>
+                    </p>
+                    <p>
+                        <strong>Соединение:</strong>
+                        <span id="connectionStatus" class="notification"
+                            >не подключено</span
+                        >
+                    </p>
                 </div>
 
                 <div class="second-row-container">
@@ -20,7 +28,19 @@
                         <input type="text" id="recipientId" value="Студент-" />
                     </div>
 
-                    <div class="interface-switcher label-wrapper">
+                    <div class="label-wrapper">
+                        <label for="keyType">Ключ:</label>
+                        <select id="keyType">
+                            <option value="auto">Автоматический</option>
+                            <option value="semi">Полуавтоматический</option>
+                        </select>
+                    </div>
+
+                    <!-- добавлен id для удобного скрытия -->
+                    <div
+                        id="interfaceSwitcher"
+                        class="interface-switcher label-wrapper"
+                    >
                         <label for="interfaceMode">Формат обмена:</label>
                         <select id="interfaceMode">
                             <option value="service">Служебный</option>
@@ -30,7 +50,8 @@
                 </div>
             </div>
 
-            <div>
+            <!-- Контейнер для автоматического (стандартного) интерфейса -->
+            <div id="exchangeContainer">
                 <div id="serviceInterface">
                     <div class="input-fields">
                         <div class="group-count-wrapper label-wrapper">
@@ -41,36 +62,113 @@
                                 <option value="30">30</option>
                             </select>
                         </div>
-    
+
                         <div class="service-fields row-1">
-                            <input type="text" placeholder="" maxlength="10" class="message-input" />
-                            <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number" />
-                            <input type="text" placeholder="" maxlength="2" inputmode="numeric" class="message-input number" />
-                            <input type="text" placeholder="" maxlength="4" inputmode="numeric" class="message-input number" />
-                            <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number" />
+                            <input
+                                type="text"
+                                maxlength="10"
+                                class="message-input"
+                            />
+                            <input
+                                type="text"
+                                maxlength="3"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
+                            <input
+                                type="text"
+                                maxlength="2"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
+                            <input
+                                type="text"
+                                maxlength="4"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
+                            <input
+                                type="text"
+                                maxlength="3"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
                             <span>=</span>
-                            <input type="text" placeholder="" maxlength="3" type="text" inputmode="numeric" class="message-input" />
-                            <input type="text" placeholder="" maxlength="6" inputmode="numeric" class="message-input number" />
-                            <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number" />
+                            <input
+                                type="text"
+                                maxlength="3"
+                                inputmode="numeric"
+                                class="message-input"
+                            />
+                            <input
+                                type="text"
+                                maxlength="6"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
+                            <input
+                                type="text"
+                                maxlength="3"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
                             <span>=</span>
                         </div>
-    
+
                         <div id="inputContainer"></div>
-    
+
                         <div class="service-fields row-3">
-                            <input type="text" placeholder="" maxlength="5" inputmode="numeric" class="message-input number" />
-                            <input type="text" placeholder="" maxlength="3" inputmode="numeric" class="message-input number" />
-                            <input type="text" placeholder="" maxlength="4" inputmode="numeric" class="message-input" />
+                            <input
+                                type="text"
+                                maxlength="5"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
+                            <input
+                                type="text"
+                                maxlength="3"
+                                inputmode="numeric"
+                                class="message-input number"
+                            />
+                            <input
+                                type="text"
+                                maxlength="4"
+                                inputmode="numeric"
+                                class="message-input"
+                            />
                         </div>
                     </div>
                 </div>
-    
+
                 <div id="operationalInterface" class="hidden">
-                    <textarea placeholder="Введите сообщение..." id="operationalInput" class="message-input"></textarea>
+                    <textarea
+                        placeholder="Введите сообщение..."
+                        id="operationalInput"
+                        class="message-input"
+                    ></textarea>
                 </div>
             </div>
 
-            <div class="controls-container">
+            <div id="semiAutoInterface" class="hidden">
+                <div class="semi-buttons">
+                    <span id="semiDot" class="semi-btn">◀</span>
+                    <span id="semiDash" class="semi-btn">▶</span>
+                </div>
+                <div class="label-wrapper">
+                    <label for="semiInterval"
+                        >Интервал между сигналами (мс):</label
+                    >
+                    <input
+                        type="number"
+                        id="semiInterval"
+                        value="300"
+                        min="50"
+                        step="50"
+                    />
+                </div>
+            </div>
+
+            <div id="controlsContainer" class="controls-container">
                 <div class="control-column">
                     <div class="label-wrapper">
                         <label for="speedSelector">Скорость:</label>
@@ -85,7 +183,13 @@
 
                     <div class="tone-selector-container">
                         <label for="toneSelector">Тональность:</label>
-                        <input type="range" id="toneSelector" min="600" max="1200" value="600" />
+                        <input
+                            type="range"
+                            id="toneSelector"
+                            min="600"
+                            max="1200"
+                            value="600"
+                        />
                         <span id="toneValue"></span>
                     </div>
                 </div>
@@ -93,21 +197,33 @@
                 <div class="control-column">
                     <div class="label-wrapper">
                         <label for="letterPause">Пауза между знаками:</label>
-                        <input type="text" maxlength="4" value="300" id="letterPause" class="number" />
+                        <input
+                            type="text"
+                            maxlength="4"
+                            value="300"
+                            id="letterPause"
+                            class="number"
+                        />
                         <span>мс</span>
                     </div>
 
                     <div class="label-wrapper">
                         <label for="groupPause">Пауза между группами:</label>
-                        <input type="text" maxlength="4" value="600" id="groupPause" class="number" />
+                        <input
+                            type="text"
+                            maxlength="4"
+                            value="600"
+                            id="groupPause"
+                            class="number"
+                        />
                         <span>мс</span>
                     </div>
                 </div>
 
                 <div class="control-column">
                     <div class="label-wrapper checkbox">
-                        <label for="groupPause">Короткий ноль:</label>
-                        <input type="checkbox" id="shortZero">
+                        <label for="shortZero">Короткий ноль:</label>
+                        <input type="checkbox" id="shortZero" />
                     </div>
 
                     <button id="sendSignal">Отправить радиограмму</button>
