@@ -50,7 +50,7 @@ select {
     font-size: 14px;
 }
 
-input[type="range"] {
+input[type='range'] {
     padding: 0;
 }
 
@@ -243,6 +243,26 @@ button:disabled {
     border-radius: 4px;
     padding: 15px;
     resize: none;
+}
+
+.semi-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.semi-btn {
+    font-size: 4rem;
+    color: #999;
+    margin: 0 2rem;
+    cursor: default;
+    user-select: none;
+    transition: color 0.1s ease-in-out;
+}
+
+.semi-btn.active {
+    color: #000;
 }
 
 @media (max-width: 1175px) {

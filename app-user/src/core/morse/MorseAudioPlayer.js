@@ -5,9 +5,8 @@ export class MorseAudioPlayer {
         this._audioContext = null;
     }
 
-    playSequence(sequence, speed, tone, letterPause, groupPause) {
+    playSequence(sequence, baseDuration, tone, letterPause, groupPause) {
         let delay = 0;
-        const baseDuration = SPEED_CONFIG.BASE_UNIT / speed;
         const durations = {
             '.': baseDuration,
             '-': baseDuration * SPEED_CONFIG.DASH_MULTIPLIER,
@@ -21,9 +20,7 @@ export class MorseAudioPlayer {
                 delay += symbolDuration + baseDuration;
             }
 
-            // Пауза между знаками (одинарный пробел)
             if (symbol === ' ') {
-                // Пауза между группами (двойной пробел)
                 if (array[index + 1] === ' ') {
                     delay += groupPause;
                 } else {
