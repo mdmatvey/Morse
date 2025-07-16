@@ -5,6 +5,7 @@ const connectedUsers = new Set();
 const adminClients = new Set();
 const connectionLogs = [];
 const MAX_LOGS = 100; // Максимальное количество логов для хранения
+export const usedIds = new Set(); // Добавлено: экспорт usedIds
 
 // Функция для форматирования времени
 function formatTime() {

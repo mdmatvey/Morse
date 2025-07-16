@@ -15,24 +15,33 @@ const network = new NetworkService();
 const morseAudioPlayer = new MorseAudioPlayer();
 const connectionStatus = new ConnectionStatus('connectionStatus');
 const userStatusIndicator = new UserStatusIndicator('userStatusIndicator');
+
 let userId = '';
+let userRole = '';
+let userNumber = '';
 let leftTimer = null;
 let rightTimer = null;
 let statusCheckInterval = null;
 let currentRecipientId = null;
 
+// Elements
+const loginContainer = document.getElementById('loginContainer');
+const appContainer = document.getElementById('appContainer');
+const roleSelect = document.getElementById('userRole');
+const numberInput = document.getElementById('userNumber');
+const loginButton = document.getElementById('loginButton');
+const recipientTypeSelect = document.getElementById('recipientType');
+
 const elements = {
     userIdDisplay: document.getElementById('userIdDisplay'),
     connectionStatus: document.getElementById('connectionStatus'),
-    recipientId: document.getElementById('recipientId'),
+    recipientType: recipientTypeSelect,
     keyType: document.getElementById('keyType'),
     interfaceMode: document.getElementById('interfaceMode'),
     interfaceSwitcher: document.getElementById('interfaceSwitcher'),
-
     exchangeContainer: document.getElementById('exchangeContainer'),
     semiAutoInterface: document.getElementById('semiAutoInterface'),
     controlsContainer: document.getElementById('controlsContainer'),
-
     serviceInterface: document.getElementById('serviceInterface'),
     operationalInterface: document.getElementById('operationalInterface'),
     groupSelector: document.getElementById('groupCount'),
@@ -43,22 +52,51 @@ const elements = {
     groupPauseInput: document.getElementById('groupPause'),
     shortZeroCheckbox: document.getElementById('shortZero'),
     sendButton: document.getElementById('sendButton'),
-
     semiInterval: document.getElementById('semiInterval'),
     semiDot: document.getElementById('semiDot'),
     semiDash: document.getElementById('semiDash'),
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
+// Login handler
+loginButton.addEventListener('click', () => {
+    userRole = roleSelect.value;
+    userNumber = numberInput.value.trim();
+    if (!userNumber || parseInt(userNumber, 10) < 1) {
+        alert('Введите корректный номер (>=1)');
+        return;
+    }
+    userId = `${userRole}-${userNumber}`;
+    loginContainer.classList.add('hidden');
+    appContainer.classList.remove('hidden');
+    elements.userIdDisplay.textContent = userId;
+    setupRecipientsList();
+    initApp();
+});
+
+// Populate recipient types based on role
+function setupRecipientsList() {
+    const map = {
+        Макет: ['Рапира', 'Клен'],
+        Рапира: ['Макет', 'Клен'],
+        Клен: ['Макет', 'Рапира', 'Клен'],
+    };
+    const types = map[userRole] || [];
+    recipientTypeSelect.innerHTML = '';
+    types.forEach((type) => {
+        const opt = document.createElement('option');
+        opt.value = type;
+        opt.textContent = type;
+        recipientTypeSelect.appendChild(opt);
+    });
+}
+
+// Initialize WebSocket and UI handlers
+async function initApp() {
+    connectionStatus.setConnecting();
+    network.onUserIdReceived = () => connectionStatus.setConnected();
+    const wsServer = __WS_SERVER__ || window.location.host;
     try {
-        connectionStatus.setConnecting();
-        network.onUserIdReceived = (id) => {
-            userId = id;
-            elements.userIdDisplay.textContent = `Студент-${userId}`;
-            connectionStatus.setConnected();
-        };
-        const wsServer = __WS_SERVER__ || window.location.host;
-        await network.connect(wsServer, handleIncomingMessage);
+        await network.connect(wsServer, handleIncomingMessage, userId);
     } catch (error) {
         connectionStatus.setError(error.message);
         console.error('Ошибка подключения:', error);
@@ -66,27 +104,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     elements.keyType.addEventListener('change', toggleKeyInterface);
     elements.interfaceMode.addEventListener('change', toggleExchangeInterface);
-
     elements.sendButton.addEventListener('click', handleSend);
     elements.toneSelector.addEventListener('input', updateToneValue);
     updateToneValue();
-
     createInputFields('inputContainer', parseInt(elements.groupSelector.value));
     setupInputHandlers();
     elements.groupSelector.addEventListener('change', (e) =>
         createInputFields('inputContainer', parseInt(e.target.value)),
     );
-
-    elements.recipientId.addEventListener('input', handleRecipientChange);
-
     document.addEventListener('keydown', handleSemiKeyDown);
     document.addEventListener('keyup', handleSemiKeyUp);
     document.addEventListener('keydown', focusNextInput);
-
     toggleKeyInterface();
     toggleExchangeInterface();
-});
+}
 
+// Send message
+function handleSend() {
+    const recipientType = elements.recipientType.value;
+    const recipient = `${recipientType}-${userNumber}`;
+    const content = getInputValues(elements.interfaceMode.value);
+    const shortZero = elements.shortZeroCheckbox.checked;
+    const morse = textToMorse(content, shortZero);
+    const speed = parseInt(elements.speedSelector.value);
+    const params = {
+        baseDuration: SPEED_CONFIG.BASE_UNIT / speed,
+        tone: parseInt(elements.toneSelector.value),
+        letterPause: parseInt(elements.letterPauseInput.value),
+        groupPause: parseInt(elements.groupPauseInput.value),
+        shortZero,
+    };
+    network.sendMessage(recipient, morse, params);
+}
+
+// Incoming message handler
+function handleIncomingMessage(data) {
+    const { baseDuration, tone, letterPause, groupPause, shortZero } =
+        data.params;
+    const sequence = data.content;
+
+    morseAudioPlayer.playSequence(
+        sequence,
+        baseDuration,
+        tone,
+        letterPause,
+        groupPause,
+    );
+}
+
+// UI toggles
 function toggleKeyInterface() {
     const isAuto = elements.keyType.value === 'auto';
     elements.exchangeContainer.classList.toggle('hidden', !isAuto);
@@ -107,92 +173,30 @@ function toggleExchangeInterface() {
     }
 }
 
-function handleSend() {
-    const recipient = elements.recipientId.value.match(/\d+/)?.[0] || '';
-    if (!recipient) {
-        alert('Укажите корректный ID получателя в формате "Студент-123"');
-        return;
-    }
-    const content = getInputValues(elements.interfaceMode.value);
-    const shortZero = elements.shortZeroCheckbox.checked;
-    const morse = textToMorse(content, shortZero);
-
-    const params = {
-        speed: parseInt(elements.speedSelector.value),
-        tone: parseInt(elements.toneSelector.value),
-        letterPause: parseInt(elements.letterPauseInput.value),
-        groupPause: parseInt(elements.groupPauseInput.value),
-        shortZero,
-    };
-
-    network.sendMessage(recipient, morse, params);
-}
-
-function handleIncomingMessage(data) {
-    const { speed, tone, letterPause, groupPause, shortZero } = data.params;
-    const morseSequence = textToMorse(data.content, shortZero);
-
-    // Логирование
-    try {
-        const dataArray = data.content.split(' ');
-        const messageHeader = dataArray.slice(0, 7).join(' ');
-        const messageText = dataArray.slice(8, -3).join(' ');
-        const messageFooter = dataArray.slice(-3).join(' ');
-        console.log('Сообщение:', data.content);
-        console.log('------------------');
-        console.log('Заголовок:', messageHeader);
-        console.log('Сообщение:', messageText);
-        console.log('Конец:', messageFooter);
-    } catch {}
-
-    morseAudioPlayer.playSequence(
-        morseSequence,
-        SPEED_CONFIG.BASE_UNIT / speed,
-        tone,
-        letterPause,
-        groupPause,
-    );
-}
-
 function updateToneValue() {
     elements.toneValue.textContent = `${elements.toneSelector.value} Гц`;
 }
 
+// Semi-auto key handling
 function handleSemiKeyDown(event) {
     if (elements.keyType.value !== 'semi') return;
-    const recipient = elements.recipientId.value.match(/\d+/)?.[0] || '';
-    if (!recipient) return;
-
+    const recipient = `${elements.recipientType.value}-${userNumber}`;
     const interval = parseInt(elements.semiInterval.value) || 300;
     const baseDuration = interval / (SPEED_CONFIG.DASH_MULTIPLIER + 1);
     const params = {
+        baseDuration,
         tone: parseInt(elements.toneSelector.value),
         letterPause: parseInt(elements.letterPauseInput.value),
         groupPause: parseInt(elements.groupPauseInput.value),
         shortZero: elements.shortZeroCheckbox.checked,
     };
-
     if (event.code === 'ArrowLeft' && !leftTimer) {
         elements.semiDot.classList.add('active');
-        leftTimer = startSemiKey(
-            '◀',
-            '.',
-            recipient,
-            params,
-            interval,
-            baseDuration,
-        );
+        leftTimer = startSemiKey('◀', '.', params, interval);
     }
     if (event.code === 'ArrowRight' && !rightTimer) {
         elements.semiDash.classList.add('active');
-        rightTimer = startSemiKey(
-            '▶',
-            '-',
-            recipient,
-            params,
-            interval,
-            baseDuration,
-        );
+        rightTimer = startSemiKey('▶', '-', params, interval);
     }
 }
 
@@ -209,53 +213,37 @@ function handleSemiKeyUp(event) {
     }
 }
 
-function startSemiKey(
-    symbolChar,
-    symbolCode,
-    recipient,
-    params,
-    interval,
-    baseDuration,
-) {
-    sendAndPlay(symbolCode, recipient, params, baseDuration);
-    return setInterval(
-        () => sendAndPlay(symbolCode, recipient, params, baseDuration),
-        interval,
-    );
+function startSemiKey(symbolChar, symbolCode, params, interval) {
+    sendAndPlay(symbolCode, params);
+    return setInterval(() => sendAndPlay(symbolCode, params), interval);
 }
 
-function sendAndPlay(symbol, recipient, params, baseDuration) {
+function sendAndPlay(symbol, params) {
+    const recipient = `${elements.recipientType.value}-${userNumber}`;
     network.sendMessage(recipient, symbol, params);
     morseAudioPlayer.playSequence(
         symbol,
-        baseDuration,
+        params.baseDuration,
         params.tone,
         params.letterPause,
         params.groupPause,
     );
 }
 
-// === Индикатор статуса получателя ===
+// Status indicator
 function handleRecipientChange(e) {
-    const recipientInput = e.target.value;
-    const recipientMatch = recipientInput.match(/\d+/);
+    const recipientMatch = e.target.value.match(/\d+/);
     const recipientId = recipientMatch ? recipientMatch[0] : null;
-
     if (recipientId === currentRecipientId) return;
-
     currentRecipientId = recipientId;
-
-    if (statusCheckInterval) {
-        clearInterval(statusCheckInterval);
-        statusCheckInterval = null;
-    }
-
+    if (statusCheckInterval) clearInterval(statusCheckInterval);
     if (recipientId) {
         userStatusIndicator.setUnknown();
         checkRecipientStatus(recipientId);
-        statusCheckInterval = setInterval(() => {
-            checkRecipientStatus(recipientId);
-        }, 5000);
+        statusCheckInterval = setInterval(
+            () => checkRecipientStatus(recipientId),
+            5000,
+        );
     } else {
         userStatusIndicator.setUnknown();
     }
@@ -264,16 +252,11 @@ function handleRecipientChange(e) {
 async function checkRecipientStatus(recipientId) {
     try {
         const isOnline = await network.checkUserStatus(recipientId);
-        if (isOnline) {
-            userStatusIndicator.setOnline();
-        } else {
-            userStatusIndicator.setOffline();
-        }
-    } catch (error) {
-        console.error(
-            `Ошибка проверки статуса корреспондента ${recipientId}`,
-            error,
-        );
+        isOnline
+            ? userStatusIndicator.setOnline()
+            : userStatusIndicator.setOffline();
+    } catch (err) {
+        console.error(`Ошибка проверки статуса ${recipientId}`, err);
         userStatusIndicator.setUnknown();
     }
 }
