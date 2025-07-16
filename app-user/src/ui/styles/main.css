@@ -113,6 +113,33 @@ button:disabled {
     gap: 20px;
 }
 
+.correspondent-container {
+    position: relative;
+}
+
+.status-indicator {
+    position: absolute;
+    right: 10px;
+    top: 25%;
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #ccc; /* Серый - неизвестно */
+}
+
+.status-indicator.online {
+    background-color: #4CAF50; /* Зеленый - онлайн */
+}
+
+.status-indicator.offline {
+    background-color: #F44336; /* Красный - оффлайн */
+}
+
+.status-indicator.unknown {
+    background-color: #ccc; /* Серый - неизвестно */
+}
+
 /* Вторая строка */
 .second-row-container {
     display: flex;
