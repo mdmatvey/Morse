@@ -5,7 +5,7 @@ import {
     createInputFields,
     getInputValues,
 } from '../ui/components/inputs.js';
-import { ConnectionStatus } from '../ui/components/connectionStatus.js';
+import { ConnectionStatus } from '../ui/components/ConnectionStatus.js';
 import { UserStatusIndicator } from '../ui/components/UserStatusIndicator.js';
 import { focusNextInput } from '../ui/utils/focusNextInput.js';
 import { textToMorse } from '../core/morse/converter.js';
@@ -22,7 +22,7 @@ let userNumber = '';
 let leftTimer = null;
 let rightTimer = null;
 let statusCheckInterval = null;
-let currentRecipientId = null;
+let currentRecipient = '';
 
 // Elements
 const loginContainer = document.getElementById('loginContainer');
@@ -30,12 +30,11 @@ const appContainer = document.getElementById('appContainer');
 const roleSelect = document.getElementById('userRole');
 const numberInput = document.getElementById('userNumber');
 const loginButton = document.getElementById('loginButton');
-const recipientTypeSelect = document.getElementById('recipientType');
 
 const elements = {
     userIdDisplay: document.getElementById('userIdDisplay'),
     connectionStatus: document.getElementById('connectionStatus'),
-    recipientType: recipientTypeSelect,
+    recipientTypeSelector: document.getElementById('recipientType'),
     keyType: document.getElementById('keyType'),
     interfaceMode: document.getElementById('interfaceMode'),
     interfaceSwitcher: document.getElementById('interfaceSwitcher'),
@@ -81,12 +80,12 @@ function setupRecipientsList() {
         Клен: ['Макет', 'Рапира', 'Клен'],
     };
     const types = map[userRole] || [];
-    recipientTypeSelect.innerHTML = '';
+    elements.recipientTypeSelector.innerHTML = '';
     types.forEach((type) => {
         const opt = document.createElement('option');
         opt.value = type;
         opt.textContent = type;
-        recipientTypeSelect.appendChild(opt);
+        elements.recipientTypeSelector.appendChild(opt);
     });
 }
 
@@ -117,12 +116,17 @@ async function initApp() {
     document.addEventListener('keydown', focusNextInput);
     toggleKeyInterface();
     toggleExchangeInterface();
+
+    elements.recipientTypeSelector.addEventListener(
+        'change',
+        handleRecipientChange,
+    );
+    handleRecipientChange();
 }
 
 // Send message
 function handleSend() {
-    const recipientType = elements.recipientType.value;
-    const recipient = `${recipientType}-${userNumber}`;
+    const recipientFull = `${elements.recipientTypeSelector.value}-${userNumber}`;
     const content = getInputValues(elements.interfaceMode.value);
     const shortZero = elements.shortZeroCheckbox.checked;
     const morse = textToMorse(content, shortZero);
@@ -134,17 +138,14 @@ function handleSend() {
         groupPause: parseInt(elements.groupPauseInput.value),
         shortZero,
     };
-    network.sendMessage(recipient, morse, params);
+    network.sendMessage(recipientFull, morse, params);
 }
 
 // Incoming message handler
 function handleIncomingMessage(data) {
-    const { baseDuration, tone, letterPause, groupPause, shortZero } =
-        data.params;
-    const sequence = data.content;
-
+    const { baseDuration, tone, letterPause, groupPause } = data.params;
     morseAudioPlayer.playSequence(
-        sequence,
+        data.content,
         baseDuration,
         tone,
         letterPause,
@@ -180,7 +181,7 @@ function updateToneValue() {
 // Semi-auto key handling
 function handleSemiKeyDown(event) {
     if (elements.keyType.value !== 'semi') return;
-    const recipient = `${elements.recipientType.value}-${userNumber}`;
+    const recipientFull = `${elements.recipientTypeSelector.value}-${userNumber}`;
     const interval = parseInt(elements.semiInterval.value) || 300;
     const baseDuration = interval / (SPEED_CONFIG.DASH_MULTIPLIER + 1);
     const params = {
@@ -192,11 +193,11 @@ function handleSemiKeyDown(event) {
     };
     if (event.code === 'ArrowLeft' && !leftTimer) {
         elements.semiDot.classList.add('active');
-        leftTimer = startSemiKey('◀', '.', params, interval);
+        leftTimer = startSemiKey('.', params, interval);
     }
     if (event.code === 'ArrowRight' && !rightTimer) {
         elements.semiDash.classList.add('active');
-        rightTimer = startSemiKey('▶', '-', params, interval);
+        rightTimer = startSemiKey('-', params, interval);
     }
 }
 
@@ -213,14 +214,14 @@ function handleSemiKeyUp(event) {
     }
 }
 
-function startSemiKey(symbolChar, symbolCode, params, interval) {
-    sendAndPlay(symbolCode, params);
-    return setInterval(() => sendAndPlay(symbolCode, params), interval);
+function startSemiKey(symbol, params, interval) {
+    sendAndPlay(symbol, params);
+    return setInterval(() => sendAndPlay(symbol, params), interval);
 }
 
 function sendAndPlay(symbol, params) {
-    const recipient = `${elements.recipientType.value}-${userNumber}`;
-    network.sendMessage(recipient, symbol, params);
+    const recipientFull = `${elements.recipientTypeSelector.value}-${userNumber}`;
+    network.sendMessage(recipientFull, symbol, params);
     morseAudioPlayer.playSequence(
         symbol,
         params.baseDuration,
@@ -231,17 +232,16 @@ function sendAndPlay(symbol, params) {
 }
 
 // Status indicator
-function handleRecipientChange(e) {
-    const recipientMatch = e.target.value.match(/\d+/);
-    const recipientId = recipientMatch ? recipientMatch[0] : null;
-    if (recipientId === currentRecipientId) return;
-    currentRecipientId = recipientId;
+function handleRecipientChange() {
+    const recipientFull = `${elements.recipientTypeSelector.value}-${userNumber}`;
+    if (recipientFull === currentRecipient) return;
+    currentRecipient = recipientFull;
     if (statusCheckInterval) clearInterval(statusCheckInterval);
-    if (recipientId) {
+    if (currentRecipient) {
         userStatusIndicator.setUnknown();
-        checkRecipientStatus(recipientId);
+        checkRecipientStatus(currentRecipient);
         statusCheckInterval = setInterval(
-            () => checkRecipientStatus(recipientId),
+            () => checkRecipientStatus(currentRecipient),
             5000,
         );
     } else {
@@ -249,14 +249,14 @@ function handleRecipientChange(e) {
     }
 }
 
-async function checkRecipientStatus(recipientId) {
+async function checkRecipientStatus(recipientFull) {
     try {
-        const isOnline = await network.checkUserStatus(recipientId);
+        const isOnline = await network.checkUserStatus(recipientFull);
         isOnline
             ? userStatusIndicator.setOnline()
             : userStatusIndicator.setOffline();
     } catch (err) {
-        console.error(`Ошибка проверки статуса ${recipientId}`, err);
+        console.error(`Ошибка проверки статуса ${recipientFull}`, err);
         userStatusIndicator.setUnknown();
     }
 }
