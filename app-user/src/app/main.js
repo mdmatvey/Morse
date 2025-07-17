@@ -82,7 +82,7 @@ function updateRecipients(list) {
     const role = roleSelect.value,
         num = numberInput.value.trim();
     if (role === 'Клен') {
-        items = list;
+        items = list.filter((id) => !id?.startsWith('Клен-'));
     } else {
         const partner = role === 'Рапира' ? 'Макет' : 'Рапира';
         const pid = `${partner}-${num}`;
