@@ -3,6 +3,8 @@ export class NetworkService {
         this.ws = null;
         this.userId = null;
         this.onUserIdReceived = null;
+        this.onStudentListReceived = null;
+        this.onMessageReceived = null;
         this.statusCallbacks = new Map();
     }
 
@@ -19,18 +21,28 @@ export class NetworkService {
             this.ws.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
-                    if (data.type === 'user-id') {
-                        this.userId = data.id;
-                        this.onUserIdReceived &&
-                            this.onUserIdReceived(this.userId);
-                    } else if (data.type === 'message') {
-                        onMessage(data);
-                    } else if (data.type === 'status-response') {
-                        const callback = this.statusCallbacks.get(data.userId);
-                        if (callback) {
-                            callback(data.online);
-                            this.statusCallbacks.delete(data.userId);
-                        }
+                    switch (data.type) {
+                        case 'user-id':
+                            this.userId = data.id;
+                            this.onUserIdReceived &&
+                                this.onUserIdReceived(this.userId);
+                            break;
+                        case 'student-list':
+                            this.onStudentListReceived &&
+                                this.onStudentListReceived(data.students);
+                            break;
+                        case 'message':
+                            onMessage(data);
+                            break;
+                        case 'status-response':
+                            const callback = this.statusCallbacks.get(
+                                data.userId,
+                            );
+                            if (callback) {
+                                callback(data.online);
+                                this.statusCallbacks.delete(data.userId);
+                            }
+                            break;
                     }
                 } catch (e) {
                     console.error('Error parsing message:', e);

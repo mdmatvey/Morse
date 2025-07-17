@@ -1,13 +1,14 @@
 import { WebSocket } from 'ws';
 
-export const clients = {};
-export const connectedUsers = new Set(); // хранит строки вида 'Макет-1'
+export const clients = {}; // { userId: ws, ... }
+export const connectedUsers = new Set(); // хранит полные строки 'Макет-1' и т.д.
 const adminClients = new Set();
 const connectionLogs = [];
-const MAX_LOGS = 100; // Максимальное количество логов
+const MAX_LOGS = 100;
+
 export const usedIds = new Set();
 
-// Форматирует время для логов
+// Форматирование времени
 function formatTime() {
     const now = new Date();
     const hh = now.getHours().toString().padStart(2, '0');
@@ -15,64 +16,52 @@ function formatTime() {
     return `${hh}:${mm}`;
 }
 
-// Добавляет запись в журнал
 function addLogEntry(event, userId) {
     const timestamp = formatTime();
-    let message = '';
-    if (event === 'connect') message = `${userId} подключился`;
-    if (event === 'disconnect') message = `${userId} отключился`;
-    const entry = { event, userId, message, timestamp };
-    connectionLogs.unshift(entry);
+    const message =
+        event === 'connect' ? `${userId} подключился` : `${userId} отключился`;
+
+    connectionLogs.unshift({ event, userId, message, timestamp });
     if (connectionLogs.length > MAX_LOGS) connectionLogs.pop();
     sendConnectionLogsToAdmins();
 }
 
+// Отправить список подключённых (для админа и студентов/кленов)
+export function broadcastStudentList() {
+    const list = Array.from(connectedUsers);
+    const msg = JSON.stringify({ type: 'student-list', students: list });
+    Object.values(clients).forEach((ws) => {
+        if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+    });
+}
+
 export function registerClient(id, ws, isAdmin = false) {
     clients[id] = ws;
-    if (isAdmin) {
-        adminClients.add(ws);
-        sendConnectedUsersToAdmins();
-        sendConnectionLogsToAdmins();
-    } else {
-        connectedUsers.add(id);
-        usedIds.add(id);
-        console.log(`Client registered: ${id}`);
-        addLogEntry('connect', id);
-        sendConnectedUsersToAdmins();
-    }
+    connectedUsers.add(id);
+    addLogEntry('connect', id);
+    broadcastStudentList(); // теперь всем
+    if (isAdmin) adminClients.add(ws);
 }
 
 export function unregisterClient(id, ws) {
     delete clients[id];
     if (connectedUsers.has(id)) {
         connectedUsers.delete(id);
-        console.log(`Client unregistered: ${id}`);
         addLogEntry('disconnect', id);
+        broadcastStudentList(); // теперь всем
     }
     if (adminClients.has(ws)) adminClients.delete(ws);
-    sendConnectedUsersToAdmins();
 }
 
 export function sendMessage(recipient, content, params) {
     const ws = clients[recipient];
     if (ws?.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'message', content, params }));
-    } else {
-        console.log(`Recipient ${recipient} not ready`);
     }
 }
 
-// Проверяет, онлайн ли пользователь по полному ID
 export function checkUserStatus(userId) {
     return connectedUsers.has(userId);
-}
-
-function sendConnectedUsersToAdmins() {
-    const students = Array.from(connectedUsers);
-    const msg = JSON.stringify({ type: 'student-list', students });
-    adminClients.forEach((ws) => {
-        if (ws.readyState === WebSocket.OPEN) ws.send(msg);
-    });
 }
 
 function sendConnectionLogsToAdmins() {

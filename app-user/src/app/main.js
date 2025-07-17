@@ -72,27 +72,40 @@ loginButton.addEventListener('click', () => {
     initApp();
 });
 
-// Populate recipient types based on role
+// Initial placeholder before receiving list
 function setupRecipientsList() {
-    const map = {
-        Макет: ['Рапира', 'Клен'],
-        Рапира: ['Макет', 'Клен'],
-        Клен: ['Макет', 'Рапира', 'Клен'],
-    };
-    const types = map[userRole] || [];
     elements.recipientTypeSelector.innerHTML = '';
-    types.forEach((type) => {
-        const opt = document.createElement('option');
-        opt.value = type;
-        opt.textContent = type;
-        elements.recipientTypeSelector.appendChild(opt);
-    });
+}
+
+// Update recipients dropdown based on list from server
+function updateRecipients(list) {
+    if (!Array.isArray(list)) return;
+    let items = [];
+    if (userRole === 'Клен') {
+        items = list.filter((id) => typeof id === 'string' && id !== userId);
+    } else {
+        const partnerRole = userRole === 'Рапира' ? 'Макет' : 'Рапира';
+        const partnerId = `${partnerRole}-${userNumber}`;
+        if (list.includes(partnerId)) items.push(partnerId);
+        // all klen
+        items.push(
+            ...list.filter(
+                (id) => typeof id === 'string' && id.startsWith('Клен-'),
+            ),
+        );
+    }
+    console.log(items);
+    elements.recipientTypeSelector.innerHTML = items
+        .map((id) => `<option value="${id}">${id}</option>`)
+        .join('');
 }
 
 // Initialize WebSocket and UI handlers
 async function initApp() {
     connectionStatus.setConnecting();
     network.onUserIdReceived = () => connectionStatus.setConnected();
+    network.onStudentListReceived = updateRecipients;
+    network.onMessageReceived = handleIncomingMessage;
     const wsServer = __WS_SERVER__ || window.location.host;
     try {
         await network.connect(wsServer, handleIncomingMessage, userId);
@@ -116,17 +129,21 @@ async function initApp() {
     document.addEventListener('keydown', focusNextInput);
     toggleKeyInterface();
     toggleExchangeInterface();
-
-    elements.recipientTypeSelector.addEventListener(
-        'change',
-        handleRecipientChange,
-    );
-    handleRecipientChange();
+    elements.recipientTypeSelector.addEventListener('change', () => {
+        currentRecipient = elements.recipientTypeSelector.value;
+        userStatusIndicator.setUnknown();
+        clearInterval(statusCheckInterval);
+        statusCheckInterval = setInterval(
+            () => checkRecipientStatus(currentRecipient),
+            5000,
+        );
+        checkRecipientStatus(currentRecipient);
+    });
 }
 
 // Send message
 function handleSend() {
-    const recipientFull = `${elements.recipientTypeSelector.value}-${userNumber}`;
+    const recipientFull = elements.recipientTypeSelector.value;
     const content = getInputValues(elements.interfaceMode.value);
     const shortZero = elements.shortZeroCheckbox.checked;
     const morse = textToMorse(content, shortZero);
@@ -181,7 +198,7 @@ function updateToneValue() {
 // Semi-auto key handling
 function handleSemiKeyDown(event) {
     if (elements.keyType.value !== 'semi') return;
-    const recipientFull = `${elements.recipientTypeSelector.value}-${userNumber}`;
+    const recipientFull = elements.recipientTypeSelector.value;
     const interval = parseInt(elements.semiInterval.value) || 300;
     const baseDuration = interval / (SPEED_CONFIG.DASH_MULTIPLIER + 1);
     const params = {
@@ -220,7 +237,7 @@ function startSemiKey(symbol, params, interval) {
 }
 
 function sendAndPlay(symbol, params) {
-    const recipientFull = `${elements.recipientTypeSelector.value}-${userNumber}`;
+    const recipientFull = elements.recipientTypeSelector.value;
     network.sendMessage(recipientFull, symbol, params);
     morseAudioPlayer.playSequence(
         symbol,
@@ -233,7 +250,7 @@ function sendAndPlay(symbol, params) {
 
 // Status indicator
 function handleRecipientChange() {
-    const recipientFull = `${elements.recipientTypeSelector.value}-${userNumber}`;
+    const recipientFull = elements.recipientTypeSelector.value;
     if (recipientFull === currentRecipient) return;
     currentRecipient = recipientFull;
     if (statusCheckInterval) clearInterval(statusCheckInterval);
