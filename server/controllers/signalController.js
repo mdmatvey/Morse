@@ -2,7 +2,6 @@ import {
     registerClient,
     unregisterClient,
     sendMessage,
-    checkUserStatus,
 } from '../services/websocketService.js';
 
 export function handleConnection(ws, req) {
@@ -13,7 +12,6 @@ export function handleConnection(ws, req) {
         const data = JSON.parse(msg);
         switch (data.type) {
             case 'register':
-                // client передаёт свой full ID
                 userId = data.userId;
                 registerClient(userId, ws, isAdmin);
                 if (!isAdmin)
@@ -21,16 +19,6 @@ export function handleConnection(ws, req) {
                 break;
             case 'message':
                 sendMessage(data.recipient, data.content, data.params);
-                break;
-            case 'status-check':
-                const online = checkUserStatus(data.checkUserId);
-                ws.send(
-                    JSON.stringify({
-                        type: 'status-response',
-                        userId: data.checkUserId,
-                        online,
-                    }),
-                );
                 break;
         }
     });

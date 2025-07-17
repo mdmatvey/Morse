@@ -5,7 +5,6 @@ export class NetworkService {
         this.onUserIdReceived = null;
         this.onStudentListReceived = null;
         this.onMessageReceived = null;
-        this.statusCallbacks = new Map();
     }
 
     connect(serverUrl, onMessage, desiredUserId) {
@@ -13,69 +12,48 @@ export class NetworkService {
             this.ws = new WebSocket(`ws://${serverUrl}`);
 
             this.ws.onopen = () => {
-                const registerMsg = { type: 'register', userId: desiredUserId };
-                this.ws.send(JSON.stringify(registerMsg));
+                this.ws.send(
+                    JSON.stringify({ type: 'register', userId: desiredUserId }),
+                );
                 resolve();
             };
 
-            this.ws.onmessage = (event) => {
+            this.ws.onmessage = ({ data }) => {
+                let msg;
                 try {
-                    const data = JSON.parse(event.data);
-                    switch (data.type) {
-                        case 'user-id':
-                            this.userId = data.id;
-                            this.onUserIdReceived &&
-                                this.onUserIdReceived(this.userId);
-                            break;
-                        case 'student-list':
-                            this.onStudentListReceived &&
-                                this.onStudentListReceived(data.students);
-                            break;
-                        case 'message':
-                            onMessage(data);
-                            break;
-                        case 'status-response':
-                            const callback = this.statusCallbacks.get(
-                                data.userId,
-                            );
-                            if (callback) {
-                                callback(data.online);
-                                this.statusCallbacks.delete(data.userId);
-                            }
-                            break;
-                    }
-                } catch (e) {
-                    console.error('Error parsing message:', e);
+                    msg = JSON.parse(data);
+                } catch {
+                    console.error('Error parsing message:', data);
+                    return;
+                }
+
+                switch (msg.type) {
+                    case 'user-id':
+                        this.userId = msg.id;
+                        this.onUserIdReceived?.(msg.id);
+                        break;
+                    case 'student-list':
+                        this.onStudentListReceived?.(msg.students);
+                        break;
+                    case 'message':
+                        onMessage(msg);
+                        break;
                 }
             };
 
-            this.ws.onerror = (error) => reject(error);
+            this.ws.onerror = (err) => reject(err);
         });
     }
 
     sendMessage(recipient, content, params) {
-        const message = {
-            type: 'message',
-            id: this.userId,
-            recipient,
-            content,
-            params,
-        };
-        this.ws.send(JSON.stringify(message));
-    }
-
-    checkUserStatus(userId) {
-        return new Promise((resolve) => {
-            this.statusCallbacks.set(userId, resolve);
-            this.ws.send(
-                JSON.stringify({ type: 'status-check', checkUserId: userId }),
-            );
-            setTimeout(() => {
-                if (this.statusCallbacks.has(userId)) {
-                    this.statusCallbacks.delete(userId);
-                    resolve(false);
-                }
-            }, 3000);
-        });
+        this.ws.send(
+            JSON.stringify({
+                type: 'message',
+                id: this.userId,
+                recipient,
+                content,
+                params,
+            }),
+        );
     }
 }

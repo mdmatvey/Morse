@@ -41,14 +41,9 @@
                     </p>
                 </div>
                 <div class="second-row-container">
-                    <div class="label-wrapper correspondent-container">
+                    <div class="label-wrapper">
                         <label for="recipientType">Получатель:</label>
                         <select id="recipientType"></select>
-                        <div
-                            id="userStatusIndicator"
-                            class="status-indicator unknown"
-                            title="Статус неизвестен"
-                        ></div>
                     </div>
                     <div class="label-wrapper">
                         <label for="keyType">Ключ:</label>
@@ -69,7 +64,8 @@
                     </div>
                 </div>
             </div>
-            <!-- остальная часть без изменений -->
+
+            <!-- Обмен радиограммами -->
             <div id="exchangeContainer">
                 <div id="serviceInterface">
                     <div class="input-fields">
@@ -163,6 +159,8 @@
                     ></textarea>
                 </div>
             </div>
+
+            <!-- Полуавтоматический ключ -->
             <div id="semiAutoInterface" class="hidden">
                 <div class="semi-buttons">
                     <span id="semiDot" class="semi-btn">◀</span>
@@ -181,6 +179,8 @@
                     />
                 </div>
             </div>
+
+            <!-- Панель настроек и отправки -->
             <div id="controlsContainer" class="controls-container">
                 <div class="control-column">
                     <div class="label-wrapper">

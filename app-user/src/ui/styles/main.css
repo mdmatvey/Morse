@@ -53,12 +53,6 @@ body {
     width: 100%;
 }
 
-h1 {
-    color: #333;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
 p {
     color: #555;
     text-align: center;
@@ -71,7 +65,8 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
     padding: 8px;
     margin-bottom: 10px;
     width: 100%;
@@ -87,14 +82,6 @@ input[type='range'] {
 
 input.message-input {
     text-transform: uppercase;
-}
-
-input.message-input::placeholder {
-    text-transform: none;
-}
-
-input.morse-input::placeholder {
-    text-transform: none;
 }
 
 button {
@@ -127,7 +114,7 @@ button:disabled {
     gap: 15px;
 }
 
-/* Контейнер из трех строк */
+/* Трёхстрочный контейнер */
 .three-row-container {
     display: flex;
     flex-direction: column;
@@ -136,46 +123,11 @@ button:disabled {
     max-width: 800px;
 }
 
-/* Первая строка */
-.first-row-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-}
-
-.correspondent-container {
-    position: relative;
-}
-
-.status-indicator {
-    position: absolute;
-    right: 10px;
-    top: 25%;
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background-color: #ccc; /* Серый - неизвестно */
-}
-
-.status-indicator.online {
-    background-color: #4caf50; /* Зеленый - онлайн */
-}
-
-.status-indicator.offline {
-    background-color: #f44336; /* Красный - оффлайн */
-}
-
-.status-indicator.unknown {
-    background-color: #ccc; /* Серый - неизвестно */
-}
-
-/* Вторая строка */
+.first-row-container,
 .second-row-container {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
+    align-items: center;
     gap: 20px;
 }
 
@@ -228,7 +180,7 @@ button:disabled {
     width: 90%;
 }
 
-/* Контейнер для нижней части экрана */
+/* Нижняя панель */
 .controls-container {
     display: flex;
     justify-content: space-between;
@@ -236,13 +188,11 @@ button:disabled {
     width: var(--main-width);
 }
 
-/* Колонки внизу */
 .control-column {
     display: flex;
     flex-direction: column;
 }
 
-/* Стили для слайдера тона */
 .tone-selector-container {
     display: flex;
     align-items: center;
@@ -260,29 +210,11 @@ button:disabled {
     font-weight: bold;
 }
 
-/* Селекторы для пауз */
 #letterPause,
 #groupPause {
     width: 80px;
 }
 
-/* Статусы */
-.success {
-    color: #155724;
-}
-
-.error {
-    color: #721c24;
-}
-
-/* Выбор скорости */
-.speed-selector-container {
-    display: flex;
-    align-items: baseline;
-    gap: 15px;
-}
-
-/* Оперативный интерфейс */
 #operationalInterface {
     display: flex;
     flex-direction: column;
@@ -314,7 +246,6 @@ button:disabled {
     font-size: 4rem;
     color: #999;
     margin: 0 2rem;
-    cursor: default;
     user-select: none;
     transition: color 0.1s ease-in-out;
 }
@@ -327,12 +258,10 @@ button:disabled {
     :root {
         --main-width: 800px;
     }
-
     .controls-container {
         flex-direction: column;
         align-items: center;
     }
-
     .control-column {
         margin-top: 20px;
     }

@@ -6,7 +6,6 @@ import {
     getInputValues,
 } from '../ui/components/inputs.js';
 import { ConnectionStatus } from '../ui/components/ConnectionStatus.js';
-import { UserStatusIndicator } from '../ui/components/UserStatusIndicator.js';
 import { focusNextInput } from '../ui/utils/focusNextInput.js';
 import { textToMorse } from '../core/morse/converter.js';
 import { SPEED_CONFIG } from '../core/morse/constants.js';
@@ -14,15 +13,12 @@ import { SPEED_CONFIG } from '../core/morse/constants.js';
 const network = new NetworkService();
 const morseAudioPlayer = new MorseAudioPlayer();
 const connectionStatus = new ConnectionStatus('connectionStatus');
-const userStatusIndicator = new UserStatusIndicator('userStatusIndicator');
 
 let userId = '';
 let userRole = '';
 let userNumber = '';
 let leftTimer = null;
 let rightTimer = null;
-let statusCheckInterval = null;
-let currentRecipient = '';
 
 // Elements
 const loginContainer = document.getElementById('loginContainer');
@@ -68,33 +64,29 @@ loginButton.addEventListener('click', () => {
     loginContainer.classList.add('hidden');
     appContainer.classList.remove('hidden');
     elements.userIdDisplay.textContent = userId;
-    setupRecipientsList();
     initApp();
 });
-
-// Initial placeholder before receiving list
-function setupRecipientsList() {
-    elements.recipientTypeSelector.innerHTML = '';
-}
 
 // Update recipients dropdown based on list from server
 function updateRecipients(list) {
     if (!Array.isArray(list)) return;
     let items = [];
+
     if (userRole === 'Клен') {
-        items = list.filter((id) => typeof id === 'string' && id !== userId);
+        // все, кроме себя
+        items = list.filter((id) => id !== userId);
     } else {
+        // свой партнёр
         const partnerRole = userRole === 'Рапира' ? 'Макет' : 'Рапира';
         const partnerId = `${partnerRole}-${userNumber}`;
         if (list.includes(partnerId)) items.push(partnerId);
-        // all klen
-        items.push(
-            ...list.filter(
-                (id) => typeof id === 'string' && id.startsWith('Клен-'),
-            ),
-        );
+        // все клены
+        items.push(...list.filter((id) => id.startsWith('Клен-')));
     }
-    console.log(items);
+
+    // окончательный список без себя
+    items = items.filter((id) => id !== userId);
+
     elements.recipientTypeSelector.innerHTML = items
         .map((id) => `<option value="${id}">${id}</option>`)
         .join('');
@@ -106,6 +98,7 @@ async function initApp() {
     network.onUserIdReceived = () => connectionStatus.setConnected();
     network.onStudentListReceived = updateRecipients;
     network.onMessageReceived = handleIncomingMessage;
+
     const wsServer = __WS_SERVER__ || window.location.host;
     try {
         await network.connect(wsServer, handleIncomingMessage, userId);
@@ -119,26 +112,19 @@ async function initApp() {
     elements.sendButton.addEventListener('click', handleSend);
     elements.toneSelector.addEventListener('input', updateToneValue);
     updateToneValue();
+
     createInputFields('inputContainer', parseInt(elements.groupSelector.value));
     setupInputHandlers();
     elements.groupSelector.addEventListener('change', (e) =>
         createInputFields('inputContainer', parseInt(e.target.value)),
     );
+
     document.addEventListener('keydown', handleSemiKeyDown);
     document.addEventListener('keyup', handleSemiKeyUp);
     document.addEventListener('keydown', focusNextInput);
+
     toggleKeyInterface();
     toggleExchangeInterface();
-    elements.recipientTypeSelector.addEventListener('change', () => {
-        currentRecipient = elements.recipientTypeSelector.value;
-        userStatusIndicator.setUnknown();
-        clearInterval(statusCheckInterval);
-        statusCheckInterval = setInterval(
-            () => checkRecipientStatus(currentRecipient),
-            5000,
-        );
-        checkRecipientStatus(currentRecipient);
-    });
 }
 
 // Send message
@@ -246,34 +232,4 @@ function sendAndPlay(symbol, params) {
         params.letterPause,
         params.groupPause,
     );
-}
-
-// Status indicator
-function handleRecipientChange() {
-    const recipientFull = elements.recipientTypeSelector.value;
-    if (recipientFull === currentRecipient) return;
-    currentRecipient = recipientFull;
-    if (statusCheckInterval) clearInterval(statusCheckInterval);
-    if (currentRecipient) {
-        userStatusIndicator.setUnknown();
-        checkRecipientStatus(currentRecipient);
-        statusCheckInterval = setInterval(
-            () => checkRecipientStatus(currentRecipient),
-            5000,
-        );
-    } else {
-        userStatusIndicator.setUnknown();
-    }
-}
-
-async function checkRecipientStatus(recipientFull) {
-    try {
-        const isOnline = await network.checkUserStatus(recipientFull);
-        isOnline
-            ? userStatusIndicator.setOnline()
-            : userStatusIndicator.setOffline();
-    } catch (err) {
-        console.error(`Ошибка проверки статуса ${recipientFull}`, err);
-        userStatusIndicator.setUnknown();
-    }
 }
