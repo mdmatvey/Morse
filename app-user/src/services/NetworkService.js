@@ -3,76 +3,57 @@ export class NetworkService {
         this.ws = null;
         this.userId = null;
         this.onUserIdReceived = null;
-        this.statusCallbacks = new Map();
+        this.onStudentListReceived = null;
+        this.onMessageReceived = null;
     }
 
-    connect(serverUrl, onMessage) {
+    connect(serverUrl, onMessage, desiredUserId) {
         return new Promise((resolve, reject) => {
             this.ws = new WebSocket(`ws://${serverUrl}`);
 
             this.ws.onopen = () => {
-                this.ws.send(JSON.stringify({ type: 'register' }));
+                this.ws.send(
+                    JSON.stringify({ type: 'register', userId: desiredUserId }),
+                );
                 resolve();
             };
 
-            this.ws.onmessage = (event) => {
+            this.ws.onmessage = ({ data }) => {
+                let msg;
                 try {
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'user-id') {
-                        this.userId = data.id;
-                        this?.onUserIdReceived(this.userId);
-                    } else if (data.type === 'message') {
-                        onMessage(data);
-                    } else if (data.type === 'status-response') {
-                        // Обработка ответа о статусе пользователя
-                        const callback = this.statusCallbacks.get(data.userId);
-                        if (callback) {
-                            callback(data.online);
-                            this.statusCallbacks.delete(data.userId);
-                        }
-                    }
-                } catch (e) {
-                    console.error('Error parsing message:', e);
+                    msg = JSON.parse(data);
+                } catch {
+                    console.error('Error parsing message:', data);
+                    return;
+                }
+
+                switch (msg.type) {
+                    case 'user-id':
+                        this.userId = msg.id;
+                        this.onUserIdReceived?.(msg.id);
+                        break;
+                    case 'student-list':
+                        this.onStudentListReceived?.(msg.students);
+                        break;
+                    case 'message':
+                        onMessage(msg);
+                        break;
                 }
             };
 
-            this.ws.onerror = (error) => reject(error);
+            this.ws.onerror = (err) => reject(err);
         });
     }
 
     sendMessage(recipient, content, params) {
-        const message = {
-            type: 'message',
-            id: this.userId,
-            recipient: recipient,
-            content,
-            params,
-        };
-
-        this.ws.send(JSON.stringify(message));
-    }
-
-    checkUserStatus(userId) {
-        console.log(userId);
-        return new Promise((resolve) => {
-            // Сохраняем колбэк, который будет вызван при получении ответа
-            this.statusCallbacks.set(userId, resolve);
-
-            // Отправляем запрос на проверку статуса
-            this.ws.send(
-                JSON.stringify({
-                    type: 'status-check',
-                    checkUserId: userId,
-                }),
-            );
-
-            // Устанавливаем таймаут на случай, если ответ не придет
-            setTimeout(() => {
-                if (this.statusCallbacks.has(userId)) {
-                    this.statusCallbacks.delete(userId);
-                    resolve(false);
-                }
-            }, 3000);
-        });
+        this.ws.send(
+            JSON.stringify({
+                type: 'message',
+                id: this.userId,
+                recipient,
+                content,
+                params,
+            }),
+        );
     }
 }

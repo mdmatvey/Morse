@@ -7,28 +7,44 @@
         <link rel="stylesheet" href="ui/styles/main.css" />
     </head>
     <body>
-        <div class="main">
+        <!-- ПАНЕЛЬ АВТОРИЗАЦИИ -->
+        <div id="loginContainer" class="login-container">
+            <h2>Вход</h2>
+            <div class="label-wrapper">
+                <label for="userRole">Позывной:</label>
+                <select id="userRole">
+                    <option value="Макет">Макет</option>
+                    <option value="Рапира">Рапира</option>
+                    <option value="Клен">Клен</option>
+                </select>
+            </div>
+            <div class="label-wrapper">
+                <label for="userNumber">Номер р/н:</label>
+                <input type="number" id="userNumber" min="1" value="1" />
+            </div>
+            <button id="loginButton">Войти</button>
+        </div>
+
+        <!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ (скрыто до входа) -->
+        <div id="appContainer" class="main hidden">
             <div class="three-row-container">
                 <div class="first-row-container">
                     <p>
-                        <strong>Ваш ID:</strong>
+                        <strong>Ваш позывной:</strong>
                         <span id="userIdDisplay"></span>
                     </p>
                     <p>
-                        <strong>Соединение:</strong>
+                        <strong>Соединение с сервером:</strong>
                         <span id="connectionStatus" class="notification"
                             >не подключено</span
                         >
                     </p>
                 </div>
-
                 <div class="second-row-container">
-                    <div class="label-wrapper correspondent-container">
-                        <label for="recipientId">ID корреспондента:</label>
-                        <input type="text" id="recipientId" value="Студент-" />
-                        <div id="userStatusIndicator" class="status-indicator unknown" title="Статус неизвестен"></div>
+                    <div class="label-wrapper">
+                        <label for="recipientType">Получатель:</label>
+                        <select id="recipientType"></select>
                     </div>
-
                     <div class="label-wrapper">
                         <label for="keyType">Ключ:</label>
                         <select id="keyType">
@@ -36,8 +52,6 @@
                             <option value="semi">Полуавтоматический</option>
                         </select>
                     </div>
-
-                    <!-- добавлен id для удобного скрытия -->
                     <div
                         id="interfaceSwitcher"
                         class="interface-switcher label-wrapper"
@@ -51,7 +65,7 @@
                 </div>
             </div>
 
-            <!-- Контейнер для автоматического (стандартного) интерфейса -->
+            <!-- Обмен радиограммами -->
             <div id="exchangeContainer">
                 <div id="serviceInterface">
                     <div class="input-fields">
@@ -63,7 +77,6 @@
                                 <option value="30">30</option>
                             </select>
                         </div>
-
                         <div class="service-fields row-1">
                             <input
                                 type="text"
@@ -115,9 +128,7 @@
                             />
                             <span>=</span>
                         </div>
-
                         <div id="inputContainer"></div>
-
                         <div class="service-fields row-3">
                             <input
                                 type="text"
@@ -140,7 +151,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div id="operationalInterface" class="hidden">
                     <textarea
                         placeholder="Введите сообщение..."
@@ -150,6 +160,7 @@
                 </div>
             </div>
 
+            <!-- Полуавтоматический ключ -->
             <div id="semiAutoInterface" class="hidden">
                 <div class="semi-buttons">
                     <span id="semiDot" class="semi-btn">◀</span>
@@ -169,6 +180,7 @@
                 </div>
             </div>
 
+            <!-- Панель настроек и отправки -->
             <div id="controlsContainer" class="controls-container">
                 <div class="control-column">
                     <div class="label-wrapper">
@@ -181,7 +193,6 @@
                             <option value="12">12 гр./мин</option>
                         </select>
                     </div>
-
                     <div class="tone-selector-container">
                         <label for="toneSelector">Тональность:</label>
                         <input
@@ -194,7 +205,6 @@
                         <span id="toneValue"></span>
                     </div>
                 </div>
-
                 <div class="control-column">
                     <div class="label-wrapper">
                         <label for="letterPause">Пауза между знаками:</label>
@@ -207,7 +217,6 @@
                         />
                         <span>мс</span>
                     </div>
-
                     <div class="label-wrapper">
                         <label for="groupPause">Пауза между группами:</label>
                         <input
@@ -220,13 +229,11 @@
                         <span>мс</span>
                     </div>
                 </div>
-
                 <div class="control-column">
                     <div class="label-wrapper checkbox">
                         <label for="shortZero">Короткий ноль:</label>
                         <input type="checkbox" id="shortZero" />
                     </div>
-
                     <button id="sendButton">Отправить радиограмму</button>
                 </div>
             </div>

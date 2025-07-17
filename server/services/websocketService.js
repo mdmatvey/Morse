@@ -1,123 +1,73 @@
 import { WebSocket } from 'ws';
 
-export const clients = {};
-const connectedUsers = new Set();
+export const clients = {}; // { userId: ws }
+export const connectedUsers = new Set(); // full IDs 'Макет-1', etc.
 const adminClients = new Set();
 const connectionLogs = [];
-const MAX_LOGS = 100; // Максимальное количество логов для хранения
+const MAX_LOGS = 100;
 
-// Функция для форматирования времени
+export const usedIds = new Set();
+
 function formatTime() {
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
+    const d = new Date();
+    return (
+        d.getHours().toString().padStart(2, '0') +
+        ':' +
+        d.getMinutes().toString().padStart(2, '0')
+    );
 }
 
-// Добавляет новую запись в журнал активности
 function addLogEntry(event, userId) {
-    const timestamp = formatTime();
-    let message = '';
-
-    if (event === 'connect') {
-        message = `Студент-${userId} подключился`;
-    } else if (event === 'disconnect') {
-        message = `Студент-${userId} отключился`;
-    }
-
-    const logEntry = {
+    const msg =
+        event === 'connect' ? `${userId} подключился` : `${userId} отключился`;
+    connectionLogs.unshift({
         event,
         userId,
-        message,
-        timestamp,
-    };
-
-    // Добавляем запись в начало массива
-    connectionLogs.unshift(logEntry);
-
-    // Ограничиваем размер массива логов
-    if (connectionLogs.length > MAX_LOGS) {
-        connectionLogs.pop();
-    }
-
-    // Отправляем обновленные логи всем админам
+        message: msg,
+        timestamp: formatTime(),
+    });
+    if (connectionLogs.length > MAX_LOGS) connectionLogs.pop();
     sendConnectionLogsToAdmins();
+}
+
+export function broadcastStudentList() {
+    const list = Array.from(connectedUsers);
+    const payload = JSON.stringify({ type: 'student-list', students: list });
+    Object.values(clients).forEach((ws) => {
+        if (ws.readyState === WebSocket.OPEN) ws.send(payload);
+    });
 }
 
 export function registerClient(id, ws, isAdmin = false) {
     clients[id] = ws;
-
-    if (isAdmin) {
-        adminClients.add(ws);
-        sendConnectedUsersToAdmins(); // Отправляем список студентов
-        sendConnectionLogsToAdmins(); // Отправляем логи подключений
-    } else {
-        // Преобразуем id в число для единообразия
-        const numericId = parseInt(id, 10);
-        connectedUsers.add(numericId);
-        console.log(`Client registered: ${id}`);
-        // Добавляем запись о подключении в журнал
-        addLogEntry('connect', id);
-        sendConnectedUsersToAdmins(); // Отправляем обновленный список админам
-    }
+    connectedUsers.add(id);
+    addLogEntry('connect', id);
+    broadcastStudentList();
+    if (isAdmin) adminClients.add(ws);
 }
 
 export function unregisterClient(id, ws) {
     delete clients[id];
-
-    if (connectedUsers.has(parseInt(id, 10))) {
-        connectedUsers.delete(parseInt(id, 10));
-        console.log(`Client unregistered: ${id}`);
-        // Добавляем запись об отключении в журнал
+    if (connectedUsers.delete(id)) {
         addLogEntry('disconnect', id);
+        broadcastStudentList();
     }
-
-    if (adminClients.has(ws)) {
-        adminClients.delete(ws);
-    }
-
-    sendConnectedUsersToAdmins(); // Обновляем список студентов у админов
+    adminClients.delete(ws);
 }
 
 export function sendMessage(recipient, content, params) {
-    const recipientWs = clients[recipient];
-    if (recipientWs?.readyState === WebSocket.OPEN) {
-        recipientWs.send(JSON.stringify({ type: 'message', content, params }));
-    } else {
-        console.log(`Recipient ${recipient} not found or not ready`);
+    const ws = clients[recipient];
+    if (ws?.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'message', content, params }));
     }
 }
 
-// Проверяет, находится ли пользователь в сети
-export function checkUserStatus(userId) {
-    // Преобразуем userId в число, так как в Set храним числа
-    const numericId = parseInt(userId, 10);
-    return connectedUsers.has(numericId);
-}
-
-function sendConnectedUsersToAdmins() {
-    const userList = Array.from(connectedUsers).map((id) => id.toString());
-    const message = JSON.stringify({
-        type: 'student-list',
-        students: userList,
-    });
-
-    adminClients.forEach((adminWs) => {
-        if (adminWs.readyState === WebSocket.OPEN) {
-            adminWs.send(message);
-        }
-    });
-}
-
 function sendConnectionLogsToAdmins() {
-    const message = JSON.stringify({
+    const msg = JSON.stringify({
         type: 'connection-logs',
         logs: connectionLogs,
     });
-
-    adminClients.forEach((adminWs) => {
-        if (adminWs.readyState === WebSocket.OPEN) {
-            adminWs.send(message);
-        }
+    adminClients.forEach((ws) => {
+        if (ws.readyState === WebSocket.OPEN) ws.send(msg);
     });
 }
