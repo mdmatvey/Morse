@@ -50,6 +50,7 @@
                         <select id="keyType">
                             <option value="auto">Автоматический</option>
                             <option value="semi">Полуавтоматический</option>
+                            <option value="manual">Ручной</option>
                         </select>
                     </div>
                     <div
@@ -178,6 +179,20 @@
                         step="50"
                     />
                 </div>
+            </div>
+
+            <!-- Ручной ключ -->
+            <div id="manualInterface" class="hidden">
+                <div id="manualPicker" class="label-wrapper">
+                    <span>Текущая кнопка:</span>
+                    <span id="manualKeyDisplay" class="manual-key"
+                        >ArrowDown</span
+                    >
+                    <button id="manualChangeBtn">Изменить</button>
+                </div>
+                <p class="note">
+                    Удерживайте выбранную клавишу для передачи сигнала.
+                </p>
             </div>
 
             <!-- Панель настроек и отправки -->
