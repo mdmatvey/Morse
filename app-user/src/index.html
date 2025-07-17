@@ -9,9 +9,9 @@
     <body>
         <!-- ПАНЕЛЬ АВТОРИЗАЦИИ -->
         <div id="loginContainer" class="login-container">
-            <h2>Вход в систему Морзе</h2>
+            <h2>Вход</h2>
             <div class="label-wrapper">
-                <label for="userRole">Тип узла:</label>
+                <label for="userRole">Позывной:</label>
                 <select id="userRole">
                     <option value="Макет">Макет</option>
                     <option value="Рапира">Рапира</option>
@@ -19,7 +19,7 @@
                 </select>
             </div>
             <div class="label-wrapper">
-                <label for="userNumber">Номер:</label>
+                <label for="userNumber">Номер р/н:</label>
                 <input type="number" id="userNumber" min="1" value="1" />
             </div>
             <button id="loginButton">Войти</button>
@@ -30,11 +30,11 @@
             <div class="three-row-container">
                 <div class="first-row-container">
                     <p>
-                        <strong>Ваш ID:</strong>
+                        <strong>Ваш позывной:</strong>
                         <span id="userIdDisplay"></span>
                     </p>
                     <p>
-                        <strong>Соединение:</strong>
+                        <strong>Соединение с сервером:</strong>
                         <span id="connectionStatus" class="notification"
                             >не подключено</span
                         >

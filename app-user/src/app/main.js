@@ -74,22 +74,22 @@ function updateRecipients(list) {
 
     if (userRole === 'Клен') {
         // все, кроме себя
-        items = list.filter((id) => id !== userId);
+        items = list;
     } else {
         // свой партнёр
         const partnerRole = userRole === 'Рапира' ? 'Макет' : 'Рапира';
         const partnerId = `${partnerRole}-${userNumber}`;
         if (list.includes(partnerId)) items.push(partnerId);
         // все клены
-        items.push(...list.filter((id) => id.startsWith('Клен-')));
+        items.push(...list.filter((id) => id?.startsWith('Клен-')));
     }
 
     // окончательный список без себя
-    items = items.filter((id) => id !== userId);
+    items = items.filter((id) => id && id !== userId);
 
-    elements.recipientTypeSelector.innerHTML = items
-        .map((id) => `<option value="${id}">${id}</option>`)
-        .join('');
+    elements.recipientTypeSelector.innerHTML = items.length
+        ? items.map((id) => `<option value="${id}">${id}</option>`).join('')
+        : '<option disabled selected>Ожидание...</option>';
 }
 
 // Initialize WebSocket and UI handlers
