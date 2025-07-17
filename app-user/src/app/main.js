@@ -15,12 +15,14 @@ const morseAudioPlayer = new MorseAudioPlayer();
 const connectionStatus = new ConnectionStatus('connectionStatus');
 
 let userId = '';
-let userRole = '';
-let userNumber = '';
 let leftTimer = null;
 let rightTimer = null;
 
-// Elements
+// Текущий код клавиши для ручного режима
+let manualKey = 'ArrowDown';
+let awaitingKey = false;
+
+// DOM-элементы
 const loginContainer = document.getElementById('loginContainer');
 const appContainer = document.getElementById('appContainer');
 const roleSelect = document.getElementById('userRole');
@@ -34,9 +36,12 @@ const elements = {
     keyType: document.getElementById('keyType'),
     interfaceMode: document.getElementById('interfaceMode'),
     interfaceSwitcher: document.getElementById('interfaceSwitcher'),
+
     exchangeContainer: document.getElementById('exchangeContainer'),
     semiAutoInterface: document.getElementById('semiAutoInterface'),
+    manualInterface: document.getElementById('manualInterface'),
     controlsContainer: document.getElementById('controlsContainer'),
+
     serviceInterface: document.getElementById('serviceInterface'),
     operationalInterface: document.getElementById('operationalInterface'),
     groupSelector: document.getElementById('groupCount'),
@@ -47,64 +52,62 @@ const elements = {
     groupPauseInput: document.getElementById('groupPause'),
     shortZeroCheckbox: document.getElementById('shortZero'),
     sendButton: document.getElementById('sendButton'),
+
     semiInterval: document.getElementById('semiInterval'),
     semiDot: document.getElementById('semiDot'),
     semiDash: document.getElementById('semiDash'),
+
+    manualKeyDisplay: document.getElementById('manualKeyDisplay'),
+    manualChangeBtn: document.getElementById('manualChangeBtn'),
 };
 
-// Login handler
+// Авторизация
 loginButton.addEventListener('click', () => {
-    userRole = roleSelect.value;
-    userNumber = numberInput.value.trim();
-    if (!userNumber || parseInt(userNumber, 10) < 1) {
+    const num = numberInput.value.trim();
+    if (!num || parseInt(num, 10) < 1) {
         alert('Введите корректный номер (>=1)');
         return;
     }
-    userId = `${userRole}-${userNumber}`;
+    userId = `${roleSelect.value}-${num}`;
     loginContainer.classList.add('hidden');
     appContainer.classList.remove('hidden');
     elements.userIdDisplay.textContent = userId;
     initApp();
 });
 
-// Update recipients dropdown based on list from server
+// Обновление списка получателей
 function updateRecipients(list) {
     if (!Array.isArray(list)) return;
     let items = [];
-
-    if (userRole === 'Клен') {
-        // все, кроме себя
+    const role = roleSelect.value,
+        num = numberInput.value.trim();
+    if (role === 'Клен') {
         items = list;
     } else {
-        // свой партнёр
-        const partnerRole = userRole === 'Рапира' ? 'Макет' : 'Рапира';
-        const partnerId = `${partnerRole}-${userNumber}`;
-        if (list.includes(partnerId)) items.push(partnerId);
-        // все клены
+        const partner = role === 'Рапира' ? 'Макет' : 'Рапира';
+        const pid = `${partner}-${num}`;
+        if (list.includes(pid)) items.push(pid);
         items.push(...list.filter((id) => id?.startsWith('Клен-')));
     }
-
-    // окончательный список без себя
     items = items.filter((id) => id && id !== userId);
-
     elements.recipientTypeSelector.innerHTML = items.length
         ? items.map((id) => `<option value="${id}">${id}</option>`).join('')
         : '<option disabled selected>Ожидание...</option>';
 }
 
-// Initialize WebSocket and UI handlers
+// Инициализация приложения
 async function initApp() {
     connectionStatus.setConnecting();
     network.onUserIdReceived = () => connectionStatus.setConnected();
     network.onStudentListReceived = updateRecipients;
     network.onMessageReceived = handleIncomingMessage;
 
-    const wsServer = __WS_SERVER__ || window.location.host;
     try {
-        await network.connect(wsServer, handleIncomingMessage, userId);
-    } catch (error) {
-        connectionStatus.setError(error.message);
-        console.error('Ошибка подключения:', error);
+        const ws = __WS_SERVER__ || window.location.host;
+        await network.connect(ws, handleIncomingMessage, userId);
+    } catch (err) {
+        connectionStatus.setError(err.message);
+        console.error(err);
     }
 
     elements.keyType.addEventListener('change', toggleKeyInterface);
@@ -113,67 +116,87 @@ async function initApp() {
     elements.toneSelector.addEventListener('input', updateToneValue);
     updateToneValue();
 
-    createInputFields('inputContainer', parseInt(elements.groupSelector.value));
+    createInputFields('inputContainer', +elements.groupSelector.value);
     setupInputHandlers();
     elements.groupSelector.addEventListener('change', (e) =>
-        createInputFields('inputContainer', parseInt(e.target.value)),
+        createInputFields('inputContainer', +e.target.value),
     );
 
+    // Полуавто
     document.addEventListener('keydown', handleSemiKeyDown);
     document.addEventListener('keyup', handleSemiKeyUp);
+
+    function formatKeyDisplay(code) {
+        if (code.startsWith('Key') && code.length > 3) {
+            return code.slice(3);
+        }
+        const arrows = {
+            ArrowUp: '▲',
+            ArrowDown: '▼',
+            ArrowLeft: '◀',
+            ArrowRight: '▶',
+        };
+        if (arrows[code]) {
+            return arrows[code];
+        }
+        return code;
+    }
+
+    // Ручной — клавиатурный
+    elements.manualChangeBtn.addEventListener('click', () => {
+        awaitingKey = true;
+        elements.manualKeyDisplay.textContent = 'Нажмите новую кнопку...';
+    });
+    document.addEventListener('keydown', (e) => {
+        if (awaitingKey) {
+            manualKey = e.code;
+            elements.manualKeyDisplay.textContent = formatKeyDisplay(manualKey);
+            awaitingKey = false;
+        }
+        handleManualKeyDown(e);
+    });
+    document.addEventListener('keyup', handleManualKeyUp);
+
     document.addEventListener('keydown', focusNextInput);
+
+    elements.manualKeyDisplay.textContent = formatKeyDisplay(manualKey);
 
     toggleKeyInterface();
     toggleExchangeInterface();
 }
 
-// Send message
+// Отправка по кнопке
 function handleSend() {
-    const recipientFull = elements.recipientTypeSelector.value;
-    const content = getInputValues(elements.interfaceMode.value);
+    const rec = elements.recipientTypeSelector.value;
+    const txt = getInputValues(elements.interfaceMode.value);
     const shortZero = elements.shortZeroCheckbox.checked;
-    const morse = textToMorse(content, shortZero);
-    const speed = parseInt(elements.speedSelector.value);
+    const morse = textToMorse(txt, shortZero);
+    const speed = +elements.speedSelector.value;
     const params = {
         baseDuration: SPEED_CONFIG.BASE_UNIT / speed,
-        tone: parseInt(elements.toneSelector.value),
-        letterPause: parseInt(elements.letterPauseInput.value),
-        groupPause: parseInt(elements.groupPauseInput.value),
+        tone: +elements.toneSelector.value,
+        letterPause: +elements.letterPauseInput.value,
+        groupPause: +elements.groupPauseInput.value,
         shortZero,
     };
-    network.sendMessage(recipientFull, morse, params);
+    network.sendMessage(rec, morse, params);
 }
 
-// Incoming message handler
+// Приём и проигрыш
 function handleIncomingMessage(data) {
     const { baseDuration, tone, letterPause, groupPause } = data.params;
-    morseAudioPlayer.playSequence(
-        data.content,
-        baseDuration,
-        tone,
-        letterPause,
-        groupPause,
-    );
-}
-
-// UI toggles
-function toggleKeyInterface() {
-    const isAuto = elements.keyType.value === 'auto';
-    elements.exchangeContainer.classList.toggle('hidden', !isAuto);
-    elements.controlsContainer.classList.toggle('hidden', !isAuto);
-    elements.interfaceSwitcher.classList.toggle('hidden', !isAuto);
-    elements.semiAutoInterface.classList.toggle('hidden', isAuto);
-}
-
-function toggleExchangeInterface() {
-    if (elements.interfaceMode.value === 'service') {
-        elements.serviceInterface.classList.remove('hidden');
-        elements.operationalInterface.classList.add('hidden');
-        document.addEventListener('keydown', focusNextInput);
+    if (data.content === 'start') {
+        morseAudioPlayer.startContinuous(baseDuration, tone);
+    } else if (data.content === 'stop') {
+        morseAudioPlayer.stopContinuous();
     } else {
-        elements.serviceInterface.classList.add('hidden');
-        elements.operationalInterface.classList.remove('hidden');
-        document.removeEventListener('keydown', focusNextInput);
+        morseAudioPlayer.playSequence(
+            data.content,
+            baseDuration,
+            tone,
+            letterPause,
+            groupPause,
+        );
     }
 }
 
@@ -181,55 +204,111 @@ function updateToneValue() {
     elements.toneValue.textContent = `${elements.toneSelector.value} Гц`;
 }
 
-// Semi-auto key handling
-function handleSemiKeyDown(event) {
-    if (elements.keyType.value !== 'semi') return;
-    const recipientFull = elements.recipientTypeSelector.value;
-    const interval = parseInt(elements.semiInterval.value) || 300;
-    const baseDuration = interval / (SPEED_CONFIG.DASH_MULTIPLIER + 1);
-    const params = {
-        baseDuration,
-        tone: parseInt(elements.toneSelector.value),
-        letterPause: parseInt(elements.letterPauseInput.value),
-        groupPause: parseInt(elements.groupPauseInput.value),
-        shortZero: elements.shortZeroCheckbox.checked,
-    };
-    if (event.code === 'ArrowLeft' && !leftTimer) {
-        elements.semiDot.classList.add('active');
-        leftTimer = startSemiKey('.', params, interval);
-    }
-    if (event.code === 'ArrowRight' && !rightTimer) {
-        elements.semiDash.classList.add('active');
-        rightTimer = startSemiKey('-', params, interval);
+// UI: переключение режимов ключа
+function toggleKeyInterface() {
+    const mode = elements.keyType.value;
+    elements.exchangeContainer.classList.toggle('hidden', mode !== 'auto');
+    elements.controlsContainer.classList.toggle('hidden', mode !== 'auto');
+    elements.interfaceSwitcher.classList.toggle('hidden', mode !== 'auto');
+    elements.semiAutoInterface.classList.toggle('hidden', mode !== 'semi');
+    elements.manualInterface.classList.toggle('hidden', mode !== 'manual');
+}
+
+// UI: служебный / оперативный
+function toggleExchangeInterface() {
+    if (elements.interfaceMode.value === 'service') {
+        elements.serviceInterface.classList.remove('hidden');
+        elements.operationalInterface.classList.add('hidden');
+    } else {
+        elements.serviceInterface.classList.add('hidden');
+        elements.operationalInterface.classList.remove('hidden');
     }
 }
 
-function handleSemiKeyUp(event) {
-    if (event.code === 'ArrowLeft' && leftTimer) {
+// Полуавто клавиши
+function handleSemiKeyDown(e) {
+    if (elements.keyType.value !== 'semi') return;
+    const rec = elements.recipientTypeSelector.value;
+    const interval = +elements.semiInterval.value || 300;
+    const baseDuration = interval / (SPEED_CONFIG.DASH_MULTIPLIER + 1);
+    const params = {
+        baseDuration,
+        tone: +elements.toneSelector.value,
+        letterPause: +elements.letterPauseInput.value,
+        groupPause: +elements.groupPauseInput.value,
+        shortZero: elements.shortZeroCheckbox.checked,
+    };
+    if (e.code === 'ArrowLeft' && !leftTimer) {
+        elements.semiDot.classList.add('active');
+        leftTimer = setInterval(() => {
+            network.sendMessage(rec, '.', params);
+            morseAudioPlayer.playSequence(
+                '.',
+                baseDuration,
+                params.tone,
+                params.letterPause,
+                params.groupPause,
+            );
+        }, interval);
+    }
+    if (e.code === 'ArrowRight' && !rightTimer) {
+        elements.semiDash.classList.add('active');
+        rightTimer = setInterval(() => {
+            network.sendMessage(rec, '-', params);
+            morseAudioPlayer.playSequence(
+                '-',
+                baseDuration,
+                params.tone,
+                params.letterPause,
+                params.groupPause,
+            );
+        }, interval);
+    }
+}
+function handleSemiKeyUp(e) {
+    if (e.code === 'ArrowLeft' && leftTimer) {
         clearInterval(leftTimer);
         leftTimer = null;
         elements.semiDot.classList.remove('active');
     }
-    if (event.code === 'ArrowRight' && rightTimer) {
+    if (e.code === 'ArrowRight' && rightTimer) {
         clearInterval(rightTimer);
         rightTimer = null;
         elements.semiDash.classList.remove('active');
     }
 }
 
-function startSemiKey(symbol, params, interval) {
-    sendAndPlay(symbol, params);
-    return setInterval(() => sendAndPlay(symbol, params), interval);
+// Ручной режим по выбранной клавише
+let manualActive = false;
+function handleManualKeyDown(e) {
+    if (
+        elements.keyType.value !== 'manual' ||
+        e.code !== manualKey ||
+        manualActive
+    )
+        return;
+    manualActive = true;
+    const rec = elements.recipientTypeSelector.value;
+    const speed = +elements.speedSelector.value;
+    const params = {
+        baseDuration: SPEED_CONFIG.BASE_UNIT / speed,
+        tone: +elements.toneSelector.value,
+        letterPause: +elements.letterPauseInput.value,
+        groupPause: +elements.groupPauseInput.value,
+        shortZero: elements.shortZeroCheckbox.checked,
+    };
+    network.sendMessage(rec, 'start', params);
+    morseAudioPlayer.startContinuous(params.baseDuration, params.tone);
 }
-
-function sendAndPlay(symbol, params) {
-    const recipientFull = elements.recipientTypeSelector.value;
-    network.sendMessage(recipientFull, symbol, params);
-    morseAudioPlayer.playSequence(
-        symbol,
-        params.baseDuration,
-        params.tone,
-        params.letterPause,
-        params.groupPause,
-    );
+function handleManualKeyUp(e) {
+    if (
+        elements.keyType.value !== 'manual' ||
+        e.code !== manualKey ||
+        !manualActive
+    )
+        return;
+    manualActive = false;
+    const rec = elements.recipientTypeSelector.value;
+    network.sendMessage(rec, 'stop', {}); // params можно не передавать
+    morseAudioPlayer.stopContinuous();
 }
