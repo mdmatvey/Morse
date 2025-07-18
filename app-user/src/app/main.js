@@ -238,33 +238,31 @@ function handleSemiKeyDown(e) {
         groupPause: +elements.groupPauseInput.value,
         shortZero: elements.shortZeroCheckbox.checked,
     };
+
+    const sendAndPlay = (symbol) => {
+        network.sendMessage(rec, symbol, params);
+        morseAudioPlayer.playSequence(
+            symbol,
+            baseDuration,
+            params.tone,
+            params.letterPause,
+            params.groupPause,
+        );
+    };
+
     if (e.code === 'ArrowLeft' && !leftTimer) {
         elements.semiDot.classList.add('active');
-        leftTimer = setInterval(() => {
-            network.sendMessage(rec, '.', params);
-            morseAudioPlayer.playSequence(
-                '.',
-                baseDuration,
-                params.tone,
-                params.letterPause,
-                params.groupPause,
-            );
-        }, interval);
+        sendAndPlay('.');
+        leftTimer = setInterval(() => sendAndPlay('.'), interval);
     }
+
     if (e.code === 'ArrowRight' && !rightTimer) {
         elements.semiDash.classList.add('active');
-        rightTimer = setInterval(() => {
-            network.sendMessage(rec, '-', params);
-            morseAudioPlayer.playSequence(
-                '-',
-                baseDuration,
-                params.tone,
-                params.letterPause,
-                params.groupPause,
-            );
-        }, interval);
+        sendAndPlay('-');
+        rightTimer = setInterval(() => sendAndPlay('-'), interval);
     }
 }
+
 function handleSemiKeyUp(e) {
     if (e.code === 'ArrowLeft' && leftTimer) {
         clearInterval(leftTimer);
