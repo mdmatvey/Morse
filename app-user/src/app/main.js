@@ -75,24 +75,59 @@ loginButton.addEventListener('click', () => {
     initApp();
 });
 
-// Обновление списка получателей
+// Обновление списка получателей с учетом занятости
 function updateRecipients(list) {
     if (!Array.isArray(list)) return;
     let items = [];
     const role = roleSelect.value,
         num = numberInput.value.trim();
     if (role === 'Клен') {
-        items = list.filter((id) => !id?.startsWith('Клен-'));
+        items = list.filter((user) => !user?.id?.startsWith('Клен-'));
     } else {
         const partner = role === 'Рапира' ? 'Макет' : 'Рапира';
         const pid = `${partner}-${num}`;
-        if (list.includes(pid)) items.push(pid);
-        items.push(...list.filter((id) => id?.startsWith('Клен-')));
+        const partnerUser = list.find((user) => user.id === pid);
+        if (partnerUser) items.push(partnerUser);
+        items.push(...list.filter((user) => user?.id?.startsWith('Клен-')));
     }
-    items = items.filter((id) => id && id !== userId);
-    elements.recipientTypeSelector.innerHTML = items.length
-        ? items.map((id) => `<option value="${id}">${id}</option>`).join('')
-        : '<option disabled selected>Ожидание...</option>';
+    items = items.filter((user) => user && user.id !== userId);
+
+    // Найдем текущего пользователя, чтобы узнать его партнера
+    const currentUser = list.find((user) => user.id === userId);
+    const currentPartner = currentUser?.partner;
+
+    // Добавляем опцию освобождения в начало списка
+    let options = '<option value=""> Не выбран </option>';
+
+    options += items
+        .map((user) => {
+            // Пользователь считается занятым, если он занят И не является текущим партнером
+            const isUnavailable = user.isBusy && user.id !== currentPartner;
+            const disabled = isUnavailable ? ' disabled' : '';
+            const busyText = isUnavailable ? ' (занят)' : '';
+            return `<option value="${user.id}"${disabled}>${user.id}${busyText}</option>`;
+        })
+        .join('');
+
+    elements.recipientTypeSelector.innerHTML = options;
+
+    // Если у пользователя есть партнер, выбираем его в селекте
+    if (currentPartner) {
+        elements.recipientTypeSelector.value = currentPartner;
+    }
+}
+
+// Обработчик изменения получателя
+function handleRecipientChange() {
+    const selectedRecipient = elements.recipientTypeSelector.value;
+
+    if (selectedRecipient === '') {
+        // Пользователь выбрал освобождение
+        network.setFree();
+    } else if (selectedRecipient && selectedRecipient !== 'Ожидание...') {
+        // Отправляем сообщение о занятости
+        network.setBusy(selectedRecipient);
+    }
 }
 
 // Инициализация приложения
@@ -114,6 +149,10 @@ async function initApp() {
     elements.interfaceMode.addEventListener('change', toggleExchangeInterface);
     elements.sendButton.addEventListener('click', handleSend);
     elements.toneSelector.addEventListener('input', updateToneValue);
+    elements.recipientTypeSelector.addEventListener(
+        'change',
+        handleRecipientChange,
+    );
     updateToneValue();
 
     createInputFields('inputContainer', +elements.groupSelector.value);
@@ -168,6 +207,10 @@ async function initApp() {
 // Отправка по кнопке
 function handleSend() {
     const rec = elements.recipientTypeSelector.value;
+    if (!rec) {
+        alert('Выберите получателя');
+        return;
+    }
     const txt = getInputValues(elements.interfaceMode.value);
     const shortZero = elements.shortZeroCheckbox.checked;
     const morse = textToMorse(txt, shortZero);
@@ -229,6 +272,7 @@ function toggleExchangeInterface() {
 function handleSemiKeyDown(e) {
     if (elements.keyType.value !== 'semi') return;
     const rec = elements.recipientTypeSelector.value;
+    if (!rec) return;
     const interval = +elements.semiInterval.value || 300;
     const baseDuration = interval / (SPEED_CONFIG.DASH_MULTIPLIER + 1);
     const params = {
@@ -287,6 +331,7 @@ function handleManualKeyDown(e) {
         return;
     manualActive = true;
     const rec = elements.recipientTypeSelector.value;
+    if (!rec) return;
     const speed = +elements.speedSelector.value;
     const params = {
         baseDuration: SPEED_CONFIG.BASE_UNIT / speed,
@@ -307,6 +352,7 @@ function handleManualKeyUp(e) {
         return;
     manualActive = false;
     const rec = elements.recipientTypeSelector.value;
+    if (!rec) return;
     network.sendMessage(rec, 'stop', {}); // params можно не передавать
     morseAudioPlayer.stopContinuous();
 }

@@ -1,7 +1,7 @@
 import { WebSocket } from 'ws';
 
 export const clients = {}; // { userId: ws }
-export const connectedUsers = new Set(); // full IDs 'Макет-1', etc.
+export const connectedUsers = new Map(); // userId -> { id, isBusy, partner }
 const adminClients = new Set();
 const connectionLogs = [];
 const MAX_LOGS = 100;
@@ -31,7 +31,7 @@ function addLogEntry(event, userId) {
 }
 
 export function broadcastStudentList() {
-    const list = Array.from(connectedUsers);
+    const list = Array.from(connectedUsers.values());
     const payload = JSON.stringify({ type: 'student-list', students: list });
     Object.values(clients).forEach((ws) => {
         if (ws.readyState === WebSocket.OPEN) ws.send(payload);
@@ -40,7 +40,7 @@ export function broadcastStudentList() {
 
 export function registerClient(id, ws, isAdmin = false) {
     clients[id] = ws;
-    connectedUsers.add(id);
+    connectedUsers.set(id, { id, isBusy: false, partner: null });
     addLogEntry('connect', id);
     broadcastStudentList();
     if (isAdmin) adminClients.add(ws);
@@ -48,7 +48,17 @@ export function registerClient(id, ws, isAdmin = false) {
 
 export function unregisterClient(id, ws) {
     delete clients[id];
-    if (connectedUsers.delete(id)) {
+    if (connectedUsers.has(id)) {
+        // Освобождаем партнера, если этот пользователь был занят
+        const user = connectedUsers.get(id);
+        if (user.isBusy && user.partner) {
+            const partner = connectedUsers.get(user.partner);
+            if (partner) {
+                partner.isBusy = false;
+                partner.partner = null;
+            }
+        }
+        connectedUsers.delete(id);
         addLogEntry('disconnect', id);
         broadcastStudentList();
     }
@@ -59,6 +69,44 @@ export function sendMessage(recipient, content, params) {
     const ws = clients[recipient];
     if (ws?.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'message', content, params }));
+    }
+}
+
+export function setBusy(userId, partnerId) {
+    const user = connectedUsers.get(userId);
+    const partner = connectedUsers.get(partnerId);
+
+    if (user && partner) {
+        // Освобождаем предыдущего партнера, если он был
+        if (user.partner && user.partner !== partnerId) {
+            const oldPartner = connectedUsers.get(user.partner);
+            if (oldPartner) {
+                oldPartner.isBusy = false;
+                oldPartner.partner = null;
+            }
+        }
+
+        // Устанавливаем занятость для обоих пользователей
+        user.isBusy = true;
+        user.partner = partnerId;
+        partner.isBusy = true;
+        partner.partner = userId;
+
+        broadcastStudentList();
+    }
+}
+
+export function setFree(userId) {
+    const user = connectedUsers.get(userId);
+    if (user && user.isBusy && user.partner) {
+        const partner = connectedUsers.get(user.partner);
+        if (partner) {
+            partner.isBusy = false;
+            partner.partner = null;
+        }
+        user.isBusy = false;
+        user.partner = null;
+        broadcastStudentList();
     }
 }
 

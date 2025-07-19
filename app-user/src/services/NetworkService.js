@@ -56,4 +56,23 @@ export class NetworkService {
             }),
         );
     }
+
+    setBusy(partnerId) {
+        this.ws.send(
+            JSON.stringify({
+                type: 'set-busy',
+                userId: this.userId,
+                partnerId: partnerId,
+            }),
+        );
+    }
+
+    setFree() {
+        this.ws.send(
+            JSON.stringify({
+                type: 'set-free',
+                userId: this.userId,
+            }),
+        );
+    }
 }
