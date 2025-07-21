@@ -7,6 +7,7 @@
         "server"
     ],
     "scripts": {
+        "install:all": "npm install && npm install --prefix app-user && npm install --prefix app-admin",
         "start": "concurrently \"npm:start:app-user\" \"npm:start:server\"",
         "start:app-user": "npm run dev --workspace=app-user",
         "start:app-admin": "npm run dev --workspace=app-admin",
