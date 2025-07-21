@@ -18,13 +18,15 @@ h2 {
     height: calc(100vh - 40px);
 }
 
-.students-panel, .logs-panel {
+.students-panel,
+.logs-panel {
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 
-.students-container, .logs-container {
+.students-container,
+.logs-container {
     background: white;
     padding: 15px;
     border-radius: 8px;
@@ -34,24 +36,41 @@ h2 {
     flex-grow: 1;
 }
 
-#students-list, #logs-list {
+#students-list,
+#logs-list {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-#students-list li, #logs-list li {
+#students-list li,
+#logs-list li {
     padding: 10px;
     border-bottom: 1px solid #eee;
     transition: background 0.2s;
 }
 
-#students-list li:hover, #logs-list li:hover {
+#students-list li:hover,
+#logs-list li:hover {
     background: #f9f9f9;
 }
 
-#students-list li:last-child, #logs-list li:last-child {
+#students-list li:last-child,
+#logs-list li:last-child {
     border-bottom: none;
+}
+
+/* Стили для статусов студентов */
+#students-list li.busy {
+    background-color: #fff3e0;
+    color: #f57c00;
+    border-left: 4px solid #f57c00;
+}
+
+#students-list li.free {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+    border-left: 4px solid #2e7d32;
 }
 
 .log-entry {
@@ -69,10 +88,23 @@ h2 {
     font-size: 0.8em;
 }
 
+/* Стили для разных типов логов */
 .log-entry.connect {
     color: #28a745;
+    background-color: #f8fff9;
 }
 
 .log-entry.disconnect {
     color: #dc3545;
+    background-color: #fff8f8;
+}
+
+.log-entry.busy {
+    color: #f57c00;
+    background-color: #fff3e0;
+}
+
+.log-entry.free {
+    color: #6c757d;
+    background-color: #f8f9fa;
 }

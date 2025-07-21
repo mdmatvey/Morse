@@ -4,7 +4,6 @@ const studentsList = document.getElementById('students-list');
 const logsList = document.getElementById('logs-list');
 
 ws.onopen = () => {
-    console.log('Connected to WebSocket as admin');
     ws.send(JSON.stringify({ type: 'register' }));
 };
 
@@ -13,10 +12,8 @@ ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
 
         if (data.type === 'student-list') {
-            console.log('Received student list:', data.students);
             updateStudentList(data.students);
         } else if (data.type === 'connection-logs') {
-            console.log('Received connection logs:', data.logs);
             updateLogsList(data.logs);
         }
     } catch (error) {
@@ -27,9 +24,29 @@ ws.onmessage = (event) => {
 ws.onclose = () => console.log('Disconnected from WebSocket');
 
 function updateStudentList(students) {
-    studentsList.innerHTML = students.length
-        ? students.map((id) => `<li>Студент-${id}</li>`).join('')
-        : '<li>Нет подключенных студентов</li>';
+    if (!students || students.length === 0) {
+        studentsList.innerHTML = '<li>Нет подключенных студентов</li>';
+        return;
+    }
+
+    studentsList.innerHTML = students
+        .map((student) => {
+            let statusText, statusClass;
+
+            if (student.isBusy && student.partner) {
+                statusText = ` (работает с ${student.partner})`;
+                statusClass = 'busy';
+            } else if (student.isBusy) {
+                statusText = ' (занят)';
+                statusClass = 'busy';
+            } else {
+                statusText = ' (свободен)';
+                statusClass = 'free';
+            }
+
+            return `<li class="${statusClass}">${student.id}${statusText}</li>`;
+        })
+        .join('');
 }
 
 function updateLogsList(logs) {
@@ -40,7 +57,24 @@ function updateLogsList(logs) {
 
     logsList.innerHTML = logs
         .map((log) => {
-            const logClass = log.event === 'connect' ? 'connect' : 'disconnect';
+            let logClass;
+            switch (log.event) {
+                case 'connect':
+                    logClass = 'connect';
+                    break;
+                case 'disconnect':
+                    logClass = 'disconnect';
+                    break;
+                case 'busy':
+                    logClass = 'busy';
+                    break;
+                case 'free':
+                    logClass = 'free';
+                    break;
+                default:
+                    logClass = '';
+            }
+
             return `
             <li class="log-entry ${logClass}">
                 <span class="message">${log.message}</span>
