@@ -325,16 +325,32 @@ function handleSemiKeyDown(e) {
         );
     };
 
-    if (e.code === 'ArrowLeft' && !leftTimer) {
-        elements.semiDot.classList.add('active');
-        sendAndPlay('.');
-        leftTimer = setInterval(() => sendAndPlay('.'), interval);
+    if (e.code === 'ArrowLeft') {
+        // Прекратить dash, если он активен
+        if (rightTimer) {
+            clearInterval(rightTimer);
+            rightTimer = null;
+            elements.semiDash.classList.remove('active');
+        }
+        if (!leftTimer) {
+            elements.semiDot.classList.add('active');
+            sendAndPlay('.');
+            leftTimer = setInterval(() => sendAndPlay('.'), interval);
+        }
     }
 
-    if (e.code === 'ArrowRight' && !rightTimer) {
-        elements.semiDash.classList.add('active');
-        sendAndPlay('-');
-        rightTimer = setInterval(() => sendAndPlay('-'), interval);
+    if (e.code === 'ArrowRight') {
+        // Прекратить dot, если он активен
+        if (leftTimer) {
+            clearInterval(leftTimer);
+            leftTimer = null;
+            elements.semiDot.classList.remove('active');
+        }
+        if (!rightTimer) {
+            elements.semiDash.classList.add('active');
+            sendAndPlay('-');
+            rightTimer = setInterval(() => sendAndPlay('-'), interval);
+        }
     }
 }
 
