@@ -15,9 +15,26 @@ export function handleConnection(ws, req) {
         switch (data.type) {
             case 'register':
                 userId = data.userId;
-                registerClient(userId, ws, isAdmin);
-                if (!isAdmin)
-                    ws.send(JSON.stringify({ type: 'user-id', id: userId }));
+                const registerResult = registerClient(userId, ws, isAdmin);
+
+                if (!isAdmin) {
+                    if (registerResult.success) {
+                        ws.send(
+                            JSON.stringify({ type: 'user-id', id: userId }),
+                        );
+                    } else {
+                        ws.send(
+                            JSON.stringify({
+                                type: 'registration-error',
+                                error: registerResult.error,
+                            }),
+                        );
+                        // Не устанавливаем userId, чтобы unregisterClient не срабатывал
+                        userId = null;
+                        ws.close(4000, registerResult.error);
+                        return;
+                    }
+                }
                 break;
             case 'message':
                 sendMessage(data.recipient, data.content, data.params);

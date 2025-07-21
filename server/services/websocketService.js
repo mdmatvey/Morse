@@ -13,7 +13,9 @@ function formatTime() {
     return (
         d.getHours().toString().padStart(2, '0') +
         ':' +
-        d.getMinutes().toString().padStart(2, '0')
+        d.getMinutes().toString().padStart(2, '0') +
+        ':' +
+        d.getSeconds().toString().padStart(2, '0')
     );
 }
 
@@ -36,6 +38,9 @@ function addLogEntry(event, userId, details = '') {
             break;
         case 'free':
             message = `${userId} завершил работу${details ? ` с ${details}` : ''}`;
+            break;
+        case 'duplicate':
+            message = `Попытка повторного подключения под ID ${userId}`;
             break;
         default:
             message = `${userId}: ${event}`;
@@ -92,18 +97,27 @@ export function registerClient(id, ws, isAdmin = false) {
         // Для админов добавляем в список и отправляем текущее состояние
         adminClients.add(ws);
         sendCurrentStateToAdmin(ws);
-        return;
+        return { success: true };
     }
 
     // Проверяем, что id валидный
     if (!id || id === 'undefined' || id === 'null') {
-        return;
+        return { success: false, error: 'Неверный ID' };
+    }
+
+    // Проверяем, не занят ли уже этот ID
+    // Проверяем, не занят ли уже этот ID
+    if (clients[id] || connectedUsers.has(id)) {
+        addLogEntry('duplicate', id);
+        // Не добавляем пользователя в систему при дублировании
+        return { success: false, error: 'ID уже используется' };
     }
 
     clients[id] = ws;
     connectedUsers.set(id, { id, isBusy: false, partner: null });
     addLogEntry('connect', id);
     broadcastStudentList();
+    return { success: true };
 }
 
 export function unregisterClient(id, ws) {

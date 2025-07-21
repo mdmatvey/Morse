@@ -69,9 +69,11 @@ loginButton.addEventListener('click', () => {
         return;
     }
     userId = `${roleSelect.value}-${num}`;
-    loginContainer.classList.add('hidden');
-    appContainer.classList.remove('hidden');
-    elements.userIdDisplay.textContent = userId;
+
+    // Блокируем кнопку входа во время попытки подключения
+    loginButton.disabled = true;
+    loginButton.textContent = 'Подключение...';
+
     initApp();
 });
 
@@ -130,19 +132,48 @@ function handleRecipientChange() {
     }
 }
 
+// Сброс формы авторизации при ошибке
+function resetLoginForm() {
+    loginButton.disabled = false;
+    loginButton.textContent = 'Войти';
+    appContainer.classList.add('hidden');
+    loginContainer.classList.remove('hidden');
+
+    // Очищаем network
+    if (network.ws && network.ws.readyState === WebSocket.OPEN) {
+        network.ws.close();
+    }
+    network.ws = null;
+    network.userId = null;
+}
+
 // Инициализация приложения
 async function initApp() {
     connectionStatus.setConnecting();
-    network.onUserIdReceived = () => connectionStatus.setConnected();
-    network.onStudentListReceived = updateRecipients;
-    network.onMessageReceived = handleIncomingMessage;
+
+    // Создаем новый экземпляр NetworkService для каждого подключения
+    const networkInstance = new NetworkService();
+
+    networkInstance.onUserIdReceived = () => {
+        connectionStatus.setConnected();
+        elements.userIdDisplay.textContent = userId;
+        loginContainer.classList.add('hidden');
+        appContainer.classList.remove('hidden');
+        // Присваиваем только после успешного подключения
+        Object.assign(network, networkInstance);
+    };
+    networkInstance.onStudentListReceived = updateRecipients;
+    networkInstance.onMessageReceived = handleIncomingMessage;
 
     try {
         const ws = __WS_SERVER__ || window.location.host;
-        await network.connect(ws, handleIncomingMessage, userId);
+        await networkInstance.connect(ws, handleIncomingMessage, userId);
     } catch (err) {
         connectionStatus.setError(err.message);
         console.error(err);
+        alert(`Ошибка подключения: ${err.message}`);
+        resetLoginForm();
+        return;
     }
 
     elements.keyType.addEventListener('change', toggleKeyInterface);

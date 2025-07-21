@@ -5,6 +5,7 @@ export class NetworkService {
         this.onUserIdReceived = null;
         this.onStudentListReceived = null;
         this.onMessageReceived = null;
+        this.onRegistrationError = null;
     }
 
     connect(serverUrl, onMessage, desiredUserId) {
@@ -15,7 +16,6 @@ export class NetworkService {
                 this.ws.send(
                     JSON.stringify({ type: 'register', userId: desiredUserId }),
                 );
-                resolve();
             };
 
             this.ws.onmessage = ({ data }) => {
@@ -31,6 +31,11 @@ export class NetworkService {
                     case 'user-id':
                         this.userId = msg.id;
                         this.onUserIdReceived?.(msg.id);
+                        resolve();
+                        break;
+                    case 'registration-error':
+                        this.onRegistrationError?.(msg.error);
+                        reject(new Error(msg.error));
                         break;
                     case 'student-list':
                         this.onStudentListReceived?.(msg.students);
@@ -41,38 +46,54 @@ export class NetworkService {
                 }
             };
 
-            this.ws.onerror = (err) => reject(err);
+            this.ws.onclose = (event) => {
+                if (event.code === 4000) {
+                    // Код 4000 означает ошибку регистрации
+                    reject(new Error(event.reason || 'ID уже используется'));
+                }
+            };
+
+            this.ws.onerror = (err) => {
+                console.error('WebSocket error:', err);
+                reject(new Error('Ошибка соединения'));
+            };
         });
     }
 
     sendMessage(recipient, content, params) {
-        this.ws.send(
-            JSON.stringify({
-                type: 'message',
-                id: this.userId,
-                recipient,
-                content,
-                params,
-            }),
-        );
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(
+                JSON.stringify({
+                    type: 'message',
+                    id: this.userId,
+                    recipient,
+                    content,
+                    params,
+                }),
+            );
+        }
     }
 
     setBusy(partnerId) {
-        this.ws.send(
-            JSON.stringify({
-                type: 'set-busy',
-                userId: this.userId,
-                partnerId: partnerId,
-            }),
-        );
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(
+                JSON.stringify({
+                    type: 'set-busy',
+                    userId: this.userId,
+                    partnerId: partnerId,
+                }),
+            );
+        }
     }
 
     setFree() {
-        this.ws.send(
-            JSON.stringify({
-                type: 'set-free',
-                userId: this.userId,
-            }),
-        );
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(
+                JSON.stringify({
+                    type: 'set-free',
+                    userId: this.userId,
+                }),
+            );
+        }
     }
 }
