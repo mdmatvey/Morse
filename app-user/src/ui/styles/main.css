@@ -1,6 +1,77 @@
-/* Общие стили */
+/* =============== Общие переменные =============== */
 :root {
     --main-width: 1200px;
+
+    --bg-primary: #f5f5f7;
+    --bg-secondary: #ffffff;
+    --bg-glass: rgba(255, 255, 255, 0.72);
+    --bg-glass-hover: rgba(255, 255, 255, 0.85);
+
+    --text-primary: #1d1d1f;
+    --text-secondary: #6e6e73;
+    --text-muted: #86868b;
+
+    --accent-primary: #0071e3;
+    --accent-hover: #0077ed;
+    --accent-success: #34c759;
+    --accent-error: #ff3b30;
+
+    --border-color: rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.08);
+
+    --input-bg: #ffffff;
+    --input-focus-shadow: rgba(0, 113, 227, 0.1);
+    --gradient-accent-1: rgba(0, 113, 227, 0.03);
+    --gradient-accent-2: rgba(52, 199, 89, 0.03);
+    --container-overlay: rgba(0, 0, 0, 0.02);
+    --scrollbar-bg: rgba(0, 0, 0, 0.1);
+    --scrollbar-hover: rgba(0, 0, 0, 0.2);
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =============== Тёмная тема =============== */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #000000;
+        --bg-secondary: #1d1d1f;
+        --bg-glass: rgba(30, 30, 30, 0.72);
+        --bg-glass-hover: rgba(40, 40, 40, 0.85);
+
+        --text-primary: #f5f5f7;
+        --text-secondary: #a1a1a6;
+        --text-muted: #6e6e73;
+
+        --accent-primary: #0a84ff;
+        --accent-hover: #409cff;
+        --accent-success: #32d74b;
+        --accent-error: #ff453a;
+
+        --border-color: rgba(255, 255, 255, 0.08);
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+        --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+        --shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.5);
+
+        --input-bg: #2c2c2e;
+        --input-focus-shadow: rgba(10, 132, 255, 0.2);
+        --gradient-accent-1: rgba(10, 132, 255, 0.05);
+        --gradient-accent-2: rgba(50, 215, 75, 0.05);
+        --container-overlay: rgba(255, 255, 255, 0.02);
+        --scrollbar-bg: rgba(255, 255, 255, 0.1);
+        --scrollbar-hover: rgba(255, 255, 255, 0.2);
+    }
+}
+
+/* =============== Сброс стилей =============== */
+* {
+    box-sizing: border-box;
 }
 
 html,
@@ -11,9 +82,15 @@ body {
     height: 100%;
 }
 
+/* =============== Базовый layout =============== */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+        Helvetica, Arial, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -21,68 +98,131 @@ body {
     overflow: hidden;
 }
 
-/* Панель авторизации по центру */
+/* =============== Фон страницы =============== */
+body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+            circle at 30% 50%,
+            var(--gradient-accent-1) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at 70% 80%,
+            var(--gradient-accent-2) 0%,
+            transparent 50%
+        );
+    animation: none;
+    pointer-events: none;
+}
+
+/* =============== Вход =============== */
 .login-container {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    width: 300px;
+    background: var(--bg-secondary);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 40px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 360px;
     text-align: center;
+    border: 1px solid var(--border-color);
+    opacity: 0;
+    animation: fadeInNoMove 0.4s ease-out forwards;
 }
 
 .login-container h2 {
-    margin-top: 0;
-    margin-bottom: 20px;
-    font-size: 1.5em;
-    color: #333;
+    margin: 0 0 32px;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
-/* Основное приложение скрыто до входа */
+.login-container .label-wrapper {
+    margin-bottom: 16px;
+}
+
+.login-container button {
+    margin-top: 16px;
+}
+
+/* =============== Основное приложение =============== */
 .main {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
+    gap: 16px;
     padding: 20px;
     height: 100%;
     width: 100%;
+    max-width: 1400px;
+    overflow: hidden;
 }
 
-h1 {
-    color: #333;
-    margin-bottom: 20px;
-    text-align: center;
+/* =============== Типографика =============== */
+h1,
+h2,
+h3 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
 }
 
 p {
-    color: #555;
-    text-align: center;
+    margin: 0;
+    color: var(--text-secondary);
 }
 
 label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-input,
-select {
-    padding: 8px;
-    margin-bottom: 10px;
-    width: 100%;
-    max-width: 250px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
     font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
 }
 
-input[type='range'] {
-    padding: 0;
+/* =============== Поля ввода и селекты =============== */
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-family: inherit;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    transition: all var(--transition-fast);
+    outline: none;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+    border-color: var(--text-muted);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--input-focus-shadow);
+}
+
+/* =============== Монопространственные поля =============== */
+.message-input,
+.morse-input,
+input[type='text'].number {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas,
+        'Courier New', monospace;
+    letter-spacing: 0.05em;
 }
 
 input.message-input {
@@ -91,222 +231,471 @@ input.message-input {
 
 input.message-input::placeholder {
     text-transform: none;
+    color: var(--text-muted);
 }
 
-input.morse-input::placeholder {
-    text-transform: none;
-}
-
+/* =============== Кнопки =============== */
 button {
     padding: 10px 20px;
-    border-radius: 4px;
-    background-color: #4caf50;
+    border-radius: var(--radius-sm);
+    background: var(--accent-primary);
     color: white;
     border: none;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition:
+        width 0.6s,
+        height 0.6s;
 }
 
 button:hover {
-    background-color: #45a049;
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
+}
+
+button:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+button:active {
+    transform: translateY(0);
 }
 
 button:disabled {
-    background-color: #cccccc;
+    background: var(--text-muted);
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
+/* =============== Утилиты =============== */
 .hidden {
     display: none !important;
 }
 
 .label-wrapper {
     display: flex;
-    align-items: baseline;
-    white-space: nowrap;
-    gap: 15px;
+    align-items: center;
+    gap: 12px;
 }
 
-/* Контейнер из трех строк */
+.label-wrapper label {
+    margin-bottom: 0;
+    min-width: fit-content;
+}
+
+/* =============== Glass-контейнеры =============== */
 .three-row-container {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    width: 100%;
-    max-width: 800px;
+    gap: 16px;
+    flex-shrink: 0;
 }
 
-/* Первая строка */
+.first-row-container,
+.second-row-container {
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 16px 20px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
 .first-row-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
 }
 
-/* Вторая строка */
 .second-row-container {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
-    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
 }
 
-/* Поля ввода */
+/* =============== Статусы подключения =============== */
+#connectionStatus {
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    background: var(--bg-secondary);
+}
+
+#connectionStatus.success {
+    color: var(--accent-success);
+    background: rgba(50, 215, 75, 0.15);
+}
+
+#connectionStatus.error {
+    color: var(--accent-error);
+    background: rgba(255, 69, 58, 0.15);
+}
+
+/* =============== Контейнер обмена =============== */
+#exchangeContainer {
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* =============== Служебный интерфейс =============== */
+#serviceInterface {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* =============== Поля ввода в служебном интерфейсе =============== */
 .input-fields {
-    width: var(--main-width);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    gap: 16px;
+}
+
+.input-fields input {
+    height: 40px;
+    box-sizing: border-box;
+    padding: 8px 12px;
 }
 
 .group-count-wrapper {
-    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+    padding-bottom: 16px;
+    margin: 0;
 }
 
 .service-fields {
     display: flex;
-    align-items: baseline;
-    width: 100%;
+    align-items: center;
     gap: 10px;
+    flex-shrink: 0;
+    margin: 0;
 }
 
-.service-fields.row-1 {
-    justify-content: space-between;
+.service-fields.row-3 {
+    justify-content: flex-start;
 }
 
-.service-fields * {
-    font-weight: bold;
+.service-fields.row-3 input {
+    flex: 0 0 128px;
+    width: 128px;
+    min-width: 0;
 }
 
-.service-fields input {
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    max-width: 100px;
-}
-
-.service-fields input::placeholder {
-    color: #666;
-    font-size: 0.9em;
-}
-
-/* Контейнер для ввода */
+/* =============== Сетка групп =============== */
 #inputContainer {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 10px;
-    margin: 20px 0;
-    max-height: 25vh;
+    row-gap: 10px;
+    align-content: start;
+    padding: 16px;
+    background: var(--container-overlay);
+    border-radius: var(--radius-sm);
     overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 #inputContainer input {
-    width: 90%;
+    padding: 8px 12px;
+    height: 40px;
+    box-sizing: border-box;
 }
 
-/* Контейнер для нижней части экрана */
-.controls-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: var(--main-width);
-}
-
-/* Колонки внизу */
-.control-column {
-    display: flex;
-    flex-direction: column;
-}
-
-/* Стили для слайдера тона */
-.tone-selector-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-#toneSelector {
-    width: 150px;
-}
-
-#toneValue {
-    display: inline-block;
-    width: 60px;
-    text-align: right;
-    font-weight: bold;
-}
-
-/* Селекторы для пауз */
-#letterPause,
-#groupPause {
-    width: 80px;
-}
-
-/* Статусы */
-.success {
-    color: #155724;
-}
-
-.error {
-    color: #721c24;
-}
-
-/* Выбор скорости */
-.speed-selector-container {
-    display: flex;
-    align-items: baseline;
-    gap: 15px;
-}
-
-/* Оперативный интерфейс */
+/* =============== Оперативный интерфейс =============== */
 #operationalInterface {
+    height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: var(--main-width);
-    height: 100%;
-    gap: 10px;
 }
 
 #operationalInterface textarea {
     width: 100%;
-    height: 200px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 15px;
+    flex: 1;
+    min-height: 150px;
     resize: none;
+    background: var(--input-bg);
+}
+
+/* =============== Полуавтоматический интерфейс =============== */
+#semiAutoInterface {
+    padding: 20px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    margin-bottom: 16px;
 }
 
 .semi-buttons {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 1rem;
+    gap: 40px;
+    margin-bottom: 20px;
 }
 
 .semi-btn {
-    font-size: 4rem;
-    color: #999;
-    margin: 0 2rem;
-    cursor: default;
+    font-size: 48px;
+    color: var(--text-muted);
+    cursor: pointer;
     user-select: none;
-    transition: color 0.1s ease-in-out;
+    transition: all var(--transition-fast);
+    padding: 16px;
+    border-radius: var(--radius-md);
+}
+
+.semi-btn:hover {
+    color: var(--text-secondary);
+    background: var(--container-overlay);
 }
 
 .semi-btn.active {
-    color: #000;
+    color: var(--accent-primary);
+    background: rgba(10, 132, 255, 0.15);
 }
 
+/* =============== Ручной интерфейс =============== */
+#manualInterface {
+    padding: 20px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    margin-bottom: 16px;
+}
+
+.manual-key {
+    display: inline-block;
+    padding: 6px 14px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    font-family: 'SF Mono', Monaco, monospace;
+    font-weight: 500;
+    margin: 0 10px;
+}
+
+.note {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-top: 12px;
+}
+
+/* =============== Панель управления =============== */
+.controls-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 20px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+}
+
+.control-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* =============== Слайдер тональности =============== */
+.tone-selector-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#toneSelector {
+    -webkit-appearance: none;
+    height: 6px;
+    background: var(--scrollbar-bg);
+    border-radius: 3px;
+    outline: none;
+    padding: 0;
+}
+
+#toneSelector::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
+    transition: all var(--transition-fast);
+}
+
+#toneSelector::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(10, 132, 255, 0.4);
+}
+
+#toneValue {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 16px;
+}
+
+/* =============== Паузы и чекбокс =============== */
+#letterPause,
+#groupPause {
+    width: 70px;
+    text-align: center;
+    padding: 8px;
+}
+
+.label-wrapper.checkbox {
+    gap: 8px;
+}
+
+input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* =============== Кнопка отправки =============== */
+#sendButton {
+    width: 100%;
+    background: linear-gradient(
+        135deg,
+        var(--accent-primary) 0%,
+        var(--accent-hover) 100%
+    );
+    font-size: 15px;
+    padding: 12px 24px;
+    margin-top: auto;
+}
+
+#sendButton:hover {
+    background: linear-gradient(
+        135deg,
+        var(--accent-hover) 0%,
+        var(--accent-primary) 100%
+    );
+}
+
+/* =============== Адаптивность =============== */
 @media (max-width: 1175px) {
     :root {
         --main-width: 800px;
     }
-
     .controls-container {
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
     }
-
     .control-column {
-        margin-top: 20px;
+        width: 100%;
+    }
+    #inputContainer {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .main {
+        padding: 12px;
+        gap: 12px;
+    }
+    .first-row-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .second-row-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    #inputContainer {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .semi-buttons {
+        gap: 24px;
+    }
+    .semi-btn {
+        font-size: 40px;
+    }
+}
+
+/* =============== Анимации =============== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInNoMove {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* =============== Анимация появления основного интерфейса =============== */
+#appContainer {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeIn 0.4s ease-out forwards;
+    animation-delay: 0.1s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
