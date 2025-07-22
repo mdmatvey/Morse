@@ -96,8 +96,6 @@ body {
 .students-container,
 .logs-container {
     background: var(--bg-glass);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
@@ -196,6 +194,55 @@ body {
     border-left: 4px solid var(--text-muted);
     background-color: rgba(134, 134, 139, 0.05);
     color: var(--text-muted);
+}
+
+/* =============== Блок управления (селектор направлений) =============== */
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: calc(var(--gap) / 2) var(--gap);
+    background: var(--bg-glass);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: background var(--transition-fast);
+}
+
+.controls:hover {
+    background: var(--bg-glass-hover);
+}
+
+.controls label {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+#direction-select {
+    flex-shrink: 0;
+    padding: 6px 28px 6px 12px;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+    appearance: none; /* убрать дефолтный стрелочный значок */
+    background-image: url('data:image/svg+xml;charset=UTF-8,<svg width="10" height="6" xmlns="http://www.w3.org/2000/svg"><path d="M0 0l5 6 5-6z" fill="%23777777"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px 6px;
+}
+
+#direction-select:focus {
+    outline: none;
+    border-color: var(--accent-info);
+}
+
+#direction-select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 /* =============== Адаптивность =============== */

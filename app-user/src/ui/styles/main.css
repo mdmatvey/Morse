@@ -203,6 +203,18 @@ textarea {
     outline: none;
 }
 
+/* Убираем дефолтную стрелку и добавляем свою для всех селектов */
+select {
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    padding-right: 32px; /* место для стрелки */
+    background-image: url('data:image/svg+xml;charset=UTF-8,<svg width="10" height="6" xmlns="http://www.w3.org/2000/svg"><path d="M0 0l5 6 5-6z" fill="%23777777"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px 6px;
+}
+
 input:hover,
 select:hover,
 textarea:hover {
@@ -259,9 +271,7 @@ button::before {
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.2);
     transform: translate(-50%, -50%);
-    transition:
-        width 0.6s,
-        height 0.6s;
+    transition: width 0.6s, height 0.6s;
 }
 
 button:hover {
@@ -313,8 +323,6 @@ button:disabled {
 .first-row-container,
 .second-row-container {
     background: var(--bg-glass);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     padding: 16px 20px;
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
@@ -357,8 +365,6 @@ button:disabled {
 /* =============== Контейнер обмена =============== */
 #exchangeContainer {
     background: var(--bg-glass);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     padding: 24px;
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-color);
@@ -459,7 +465,6 @@ button:disabled {
 #semiAutoInterface {
     padding: 20px;
     background: var(--bg-glass);
-    backdrop-filter: blur(10px);
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
     margin-bottom: 16px;
@@ -497,7 +502,6 @@ button:disabled {
 #manualInterface {
     padding: 20px;
     background: var(--bg-glass);
-    backdrop-filter: blur(10px);
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
     margin-bottom: 16px;
@@ -527,7 +531,6 @@ button:disabled {
     gap: 24px;
     padding: 20px;
     background: var(--bg-glass);
-    backdrop-filter: blur(10px);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
@@ -687,15 +690,4 @@ input[type='checkbox'] {
     transform: translateY(10px);
     animation: fadeIn 0.4s ease-out forwards;
     animation-delay: 0.1s;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
