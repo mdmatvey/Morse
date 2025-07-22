@@ -4,6 +4,7 @@ import {
     sendMessage,
     setBusy,
     setFree,
+    setAdminDirection,
 } from '../services/websocketService.js';
 
 export function handleConnection(ws, req) {
@@ -29,7 +30,6 @@ export function handleConnection(ws, req) {
                                 error: registerResult.error,
                             }),
                         );
-                        // Не устанавливаем userId, чтобы unregisterClient не срабатывал
                         userId = null;
                         ws.close(4000, registerResult.error);
                         return;
@@ -44,6 +44,10 @@ export function handleConnection(ws, req) {
                 break;
             case 'set-free':
                 setFree(data.userId);
+                break;
+            case 'set-direction':
+                // для админа: data.direction = строка, например "1"
+                setAdminDirection(ws, data.direction);
                 break;
         }
     });

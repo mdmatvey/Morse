@@ -1,29 +1,37 @@
 import { WebSocket } from 'ws';
 
-export const clients = {}; // { userId: ws }
-export const connectedUsers = new Map(); // userId -> { id, isBusy, partner }
-const adminClients = new Set();
+export const clients = {};                   // { userId: ws }
+export const connectedUsers = new Map();     // userId -> { id, isBusy, partner }
+const adminClients = new Set();             
+const adminSettings = new Map();            // ws -> { direction: string|null }
 const connectionLogs = [];
 const MAX_LOGS = 100;
+
+// Множество всех направлений, которые когда-либо были в логах
+const persistentDirections = new Set();
 
 export const usedIds = new Set();
 
 function formatTime() {
     const d = new Date();
     return (
-        d.getHours().toString().padStart(2, '0') +
-        ':' +
-        d.getMinutes().toString().padStart(2, '0') +
-        ':' +
+        d.getHours().toString().padStart(2, '0') + ':' +
+        d.getMinutes().toString().padStart(2, '0') + ':' +
         d.getSeconds().toString().padStart(2, '0')
     );
 }
 
 function addLogEntry(event, userId, details = '') {
-    // Не логируем события для пустых или undefined userId
-    if (!userId || userId === 'undefined' || userId === 'null') {
-        return;
-    }
+    if (!userId || userId === 'undefined' || userId === 'null') return;
+    // Не логируем события для Клен-*
+    if (userId.startsWith('Клен-')) return;
+
+    // Фиксим направление из userId
+    const m1 = userId.match(/^(?:Рапира|Макет)-(\d+)$/);
+    if (m1) persistentDirections.add(m1[1]);
+    // Фиксим направление из details (для partner)
+    const m2 = details.match(/^(?:Рапира|Макет)-(\d+)$/);
+    if (m2) persistentDirections.add(m2[1]);
 
     let message;
     switch (event) {
@@ -40,77 +48,75 @@ function addLogEntry(event, userId, details = '') {
             message = `${userId} завершил работу${details ? ` с ${details}` : ''}`;
             break;
         case 'duplicate':
-            message = `Попытка повторного подключения под ID ${userId}`;
+            message = `Попытка повторного подключения под позывным ${userId}`;
             break;
         default:
             message = `${userId}: ${event}`;
     }
 
-    connectionLogs.unshift({
-        event,
-        userId,
-        message,
-        timestamp: formatTime(),
-    });
+    connectionLogs.unshift({ event, userId, message, timestamp: formatTime() });
     if (connectionLogs.length > MAX_LOGS) connectionLogs.pop();
     sendConnectionLogsToAdmins();
 }
 
+function getAvailableDirections() {
+    // Возвращаем все когда‑либо встреченные направления, отсортированные по числу
+    return Array.from(persistentDirections)
+        .sort((a, b) => Number(a) - Number(b));
+}
+
 export function broadcastStudentList() {
     const list = Array.from(connectedUsers.values());
-    const payload = JSON.stringify({ type: 'student-list', students: list });
+    const studentsMsg = JSON.stringify({ type: 'student-list', students: list });
 
-    // Отправляем обычным клиентам
-    Object.values(clients).forEach((ws) => {
-        if (ws.readyState === WebSocket.OPEN) ws.send(payload);
+    // всем клиентам
+    Object.values(clients).forEach(ws => {
+        if (ws.readyState === WebSocket.OPEN) ws.send(studentsMsg);
+    });
+    // всем админам
+    adminClients.forEach(ws => {
+        if (ws.readyState === WebSocket.OPEN) ws.send(studentsMsg);
     });
 
-    // Отправляем админам
-    adminClients.forEach((ws) => {
-        if (ws.readyState === WebSocket.OPEN) ws.send(payload);
+    // опции селектора
+    const directions = getAvailableDirections();
+    const dirMsg = JSON.stringify({ type: 'radiodirections', directions });
+    adminClients.forEach(ws => {
+        if (ws.readyState === WebSocket.OPEN) ws.send(dirMsg);
     });
 }
 
 function sendCurrentStateToAdmin(adminWs) {
-    // Отправляем текущий список студентов
-    const studentList = Array.from(connectedUsers.values());
-    const studentListPayload = JSON.stringify({
+    // список студентов
+    adminWs.send(JSON.stringify({
         type: 'student-list',
-        students: studentList,
-    });
-    if (adminWs.readyState === WebSocket.OPEN) {
-        adminWs.send(studentListPayload);
-    }
-
-    // Отправляем текущие логи
-    const logsPayload = JSON.stringify({
+        students: Array.from(connectedUsers.values()),
+    }));
+    // логи
+    adminSettings.set(adminWs, { direction: null });
+    adminWs.send(JSON.stringify({
         type: 'connection-logs',
         logs: connectionLogs,
-    });
-    if (adminWs.readyState === WebSocket.OPEN) {
-        adminWs.send(logsPayload);
-    }
+    }));
+    // направления
+    adminWs.send(JSON.stringify({
+        type: 'radiodirections',
+        directions: getAvailableDirections(),
+    }));
 }
 
 export function registerClient(id, ws, isAdmin = false) {
     if (isAdmin) {
-        // Для админов добавляем в список и отправляем текущее состояние
         adminClients.add(ws);
         sendCurrentStateToAdmin(ws);
         return { success: true };
     }
-
-    // Проверяем, что id валидный
     if (!id || id === 'undefined' || id === 'null') {
-        return { success: false, error: 'Неверный ID' };
+        return { success: false, error: 'Неверный позывной' };
     }
-
-    // Проверяем, не занят ли уже этот ID
-    // Проверяем, не занят ли уже этот ID
     if (clients[id] || connectedUsers.has(id)) {
         addLogEntry('duplicate', id);
-        // Не добавляем пользователя в систему при дублировании
-        return { success: false, error: 'ID уже используется' };
+        return { success: false, error: 'Позывной уже используется' };
     }
 
     clients[id] = ws;
@@ -121,27 +127,23 @@ export function registerClient(id, ws, isAdmin = false) {
 }
 
 export function unregisterClient(id, ws) {
-    // Удаляем из админов если это был админ
     adminClients.delete(ws);
+    adminSettings.delete(ws);
 
-    // Если id не валидный, просто выходим
-    if (!id || id === 'undefined' || id === 'null') {
-        return;
-    }
+    if (!id || id === 'undefined' || id === 'null') return;
 
     delete clients[id];
     if (connectedUsers.has(id)) {
         const user = connectedUsers.get(id);
 
-        // Освобождаем партнера, если этот пользователь был занят
         if (user.isBusy && user.partner) {
             const partner = connectedUsers.get(user.partner);
             if (partner) {
                 partner.isBusy = false;
                 partner.partner = null;
-                addLogEntry('free', user.partner, id); // Логируем освобождение партнера
+                addLogEntry('free', user.partner, id);
             }
-            addLogEntry('free', id, user.partner); // Логируем освобождение отключившегося пользователя
+            addLogEntry('free', id, user.partner);
         }
 
         connectedUsers.delete(id);
@@ -160,29 +162,20 @@ export function sendMessage(recipient, content, params) {
 export function setBusy(userId, partnerId) {
     const user = connectedUsers.get(userId);
     const partner = connectedUsers.get(partnerId);
-
     if (user && partner) {
-        // Освобождаем предыдущего партнера, если он был
         if (user.partner && user.partner !== partnerId) {
-            const oldPartner = connectedUsers.get(user.partner);
-            if (oldPartner) {
-                oldPartner.isBusy = false;
-                oldPartner.partner = null;
+            const old = connectedUsers.get(user.partner);
+            if (old) {
+                old.isBusy = false;
+                old.partner = null;
                 addLogEntry('free', user.partner, userId);
                 addLogEntry('free', userId, user.partner);
             }
         }
-
-        // Устанавливаем занятость для обоих пользователей
-        user.isBusy = true;
-        user.partner = partnerId;
-        partner.isBusy = true;
-        partner.partner = userId;
-
-        // Логируем новую связь
+        user.isBusy = true; user.partner = partnerId;
+        partner.isBusy = true; partner.partner = userId;
         addLogEntry('busy', userId, partnerId);
         addLogEntry('busy', partnerId, userId);
-
         broadcastStudentList();
     }
 }
@@ -190,29 +183,42 @@ export function setBusy(userId, partnerId) {
 export function setFree(userId) {
     const user = connectedUsers.get(userId);
     if (user && user.isBusy && user.partner) {
-        const partnerId = user.partner;
-        const partner = connectedUsers.get(partnerId);
-
+        const pid = user.partner;
+        const partner = connectedUsers.get(pid);
         if (partner) {
             partner.isBusy = false;
             partner.partner = null;
-            addLogEntry('free', partnerId, userId);
+            addLogEntry('free', pid, userId);
         }
-
         user.isBusy = false;
         user.partner = null;
-        addLogEntry('free', userId, partnerId);
-
+        addLogEntry('free', userId, pid);
         broadcastStudentList();
     }
 }
 
-function sendConnectionLogsToAdmins() {
-    const msg = JSON.stringify({
+export function setAdminDirection(ws, direction) {
+    if (!adminSettings.has(ws)) return;
+    adminSettings.get(ws).direction = direction;
+    sendConnectionLogsToAdmin(ws);
+}
+
+function filterLogsFor(ws) {
+    const { direction } = adminSettings.get(ws) || {};
+    if (!direction) return connectionLogs;
+    return connectionLogs.filter(log =>
+        log.userId.endsWith(`-${direction}`)
+    );
+}
+
+export function sendConnectionLogsToAdmins() {
+    adminClients.forEach(ws => sendConnectionLogsToAdmin(ws));
+}
+
+export function sendConnectionLogsToAdmin(ws) {
+    if (ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({
         type: 'connection-logs',
-        logs: connectionLogs,
-    });
-    adminClients.forEach((ws) => {
-        if (ws.readyState === WebSocket.OPEN) ws.send(msg);
-    });
+        logs: filterLogsFor(ws),
+    }));
 }

@@ -49,7 +49,7 @@ export class NetworkService {
             this.ws.onclose = (event) => {
                 if (event.code === 4000) {
                     // Код 4000 означает ошибку регистрации
-                    reject(new Error(event.reason || 'ID уже используется'));
+                    reject(new Error(event.reason || 'позывной уже используется'));
                 }
             };
 

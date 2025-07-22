@@ -64,8 +64,8 @@ const elements = {
 // Авторизация
 loginButton.addEventListener('click', () => {
     const num = numberInput.value.trim();
-    if (!num || parseInt(num, 10) < 1) {
-        alert('Введите корректный номер (>=1)');
+    if (!num || parseInt(num, 10) < 1 || parseInt(num, 10) > 1) {
+        alert('Введите корректный номер (от 1 до 1000)');
         return;
     }
     userId = `${roleSelect.value}-${num}`;
