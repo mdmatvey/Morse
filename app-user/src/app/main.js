@@ -176,14 +176,14 @@ async function connectToServer(isReconnecting = false) {
     } catch (err) {
         setTimeout(() => {
             connectionStatus.setError(err.message);
-            
+
             if (!isReconnecting) {
                 console.error(err);
                 alert(`Ошибка подключения: ${err.message}`);
                 resetLoginForm();
                 throw err;
             }
-        }, 1000)
+        }, 1000);
     }
 }
 
@@ -191,7 +191,7 @@ async function connectToServer(isReconnecting = false) {
 function startReconnecting() {
     if (reconnectInterval) return;
     reconnectInterval = setInterval(() => {
-        connectToServer(true)
+        connectToServer(true);
     }, RECONNECT_INTERVAL_MS);
 }
 
@@ -250,7 +250,9 @@ async function initApp() {
     });
     document.addEventListener('keyup', handleManualKeyUp);
 
-    document.addEventListener('keydown', focusNextInput);
+    document.addEventListener('keydown', (e) => {
+        focusNextInput(e, elements.interfaceMode.value);
+    });
 
     elements.manualKeyDisplay.textContent = formatKeyDisplay(manualKey);
 
