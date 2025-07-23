@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
             emptyOutDir: true,
         },
         define: {
-            __WS_SERVER__: JSON.stringify(env.WS_SERVER || 'localhost:1337'),
+            __WS_SERVER__: JSON.stringify(env.WS_SERVER),
         },
     };
 });

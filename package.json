@@ -8,15 +8,15 @@
     ],
     "scripts": {
         "install:all": "npm install && npm install --prefix app-user && npm install --prefix app-admin",
-        "start": "concurrently \"npm:start:server\" \"npm:start:app-admin\" \"npm:start:app-user\"",
-        "start:app-user": "npm run dev --workspace=app-user",
-        "start:app-admin": "npm run dev --workspace=app-admin",
+        "start": "npm-run-all --parallel start:server start:app-admin start:app-user",
+        "start:app-user": "WS_SERVER=localhost:1337 npm run dev --workspace=app-user",
+        "start:app-admin": "WS_SERVER=localhost:1337 npm run dev --workspace=app-admin",
         "start:server": "FORCE_LOCALHOST=true npm start --workspace=server",
         "build": "npm run build --workspaces",
         "format": "prettier --write ."
     },
     "devDependencies": {
-        "concurrently": "^8.2.2",
+        "npm-run-all": "^4.1.5",
         "prettier": "^3.0.0"
     }
 }
