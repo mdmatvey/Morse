@@ -10,11 +10,13 @@ import { focusNextInput } from '../ui/utils/focusNextInput.js';
 import { textToMorse } from '../core/morse/converter.js';
 import { SPEED_CONFIG } from '../core/morse/constants.js';
 
+const RECONNECT_INTERVAL_MS = 5000;
 const network = new NetworkService();
 const morseAudioPlayer = new MorseAudioPlayer();
 const connectionStatus = new ConnectionStatus('connectionStatus');
 
 let userId = '';
+let reconnectInterval = null;
 let leftTimer = null;
 let rightTimer = null;
 
@@ -69,11 +71,8 @@ loginButton.addEventListener('click', () => {
         return;
     }
     userId = `${roleSelect.value}-${num}`;
-
-    // Блокируем кнопку входа во время попытки подключения
     loginButton.disabled = true;
     loginButton.textContent = 'Подключение...';
-
     initApp();
 });
 
@@ -147,34 +146,58 @@ function resetLoginForm() {
     network.userId = null;
 }
 
-// Инициализация приложения
-async function initApp() {
+// Вынесенная функция подключения
+async function connectToServer(isReconnecting = false) {
     connectionStatus.setConnecting();
-
-    // Создаем новый экземпляр NetworkService для каждого подключения
-    const networkInstance = new NetworkService();
-
-    networkInstance.onUserIdReceived = () => {
+    const instance = new NetworkService();
+    instance.onUserIdReceived = () => {
         connectionStatus.setConnected();
         elements.userIdDisplay.textContent = userId;
         loginContainer.classList.add('hidden');
         appContainer.classList.remove('hidden');
-        // Присваиваем только после успешного подключения
-        Object.assign(network, networkInstance);
+        Object.assign(network, instance);
+        // Успешное подключение, прекращаем попытки переподключения
+        if (reconnectInterval) {
+            clearInterval(reconnectInterval);
+            reconnectInterval = null;
+        }
     };
-    networkInstance.onStudentListReceived = updateRecipients;
-    networkInstance.onMessageReceived = handleIncomingMessage;
+    instance.onStudentListReceived = updateRecipients;
+    instance.onMessageReceived = handleIncomingMessage;
 
     try {
         const ws = __WS_SERVER__ || window.location.host;
-        await networkInstance.connect(ws, handleIncomingMessage, userId);
+        await instance.connect(ws, handleIncomingMessage, userId);
+        // При неожиданном закрытии – запускаем переподключение
+        instance.ws.onclose = () => {
+            connectionStatus.clearStatus();
+            startReconnecting();
+        };
     } catch (err) {
-        connectionStatus.setError(err.message);
-        console.error(err);
-        alert(`Ошибка подключения: ${err.message}`);
-        resetLoginForm();
-        return;
+        setTimeout(() => {
+            connectionStatus.setError(err.message);
+            
+            if (!isReconnecting) {
+                console.error(err);
+                alert(`Ошибка подключения: ${err.message}`);
+                resetLoginForm();
+                throw err;
+            }
+        }, 1000)
     }
+}
+
+// Функция переподключения
+function startReconnecting() {
+    if (reconnectInterval) return;
+    reconnectInterval = setInterval(() => {
+        connectToServer(true)
+    }, RECONNECT_INTERVAL_MS);
+}
+
+// Инициализация приложения
+async function initApp() {
+    connectToServer();
 
     elements.keyType.addEventListener('change', toggleKeyInterface);
     elements.interfaceMode.addEventListener('change', toggleExchangeInterface);
