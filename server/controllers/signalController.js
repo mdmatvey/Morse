@@ -5,6 +5,8 @@ import {
     setBusy,
     setFree,
     setAdminDirection,
+    incrementCounts,
+    finishExchange,
 } from '../services/websocketService.js';
 
 export function handleConnection(ws, req) {
@@ -37,6 +39,12 @@ export function handleConnection(ws, req) {
                 }
                 break;
             case 'message':
+                incrementCounts(
+                    userId,
+                    data.recipient,
+                    data.keyType,
+                    data.messageType,
+                );
                 sendMessage(data.recipient, data.content, data.params);
                 break;
             case 'set-busy':
@@ -48,6 +56,9 @@ export function handleConnection(ws, req) {
             case 'set-direction':
                 // для админа: data.direction = строка, например "1"
                 setAdminDirection(ws, data.direction);
+                break;
+            case 'finish':
+                finishExchange(userId);
                 break;
         }
     });

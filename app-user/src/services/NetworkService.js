@@ -49,7 +49,9 @@ export class NetworkService {
             this.ws.onclose = (event) => {
                 if (event.code === 4000) {
                     // Код 4000 означает ошибку регистрации
-                    reject(new Error(event.reason || 'позывной уже используется'));
+                    reject(
+                        new Error(event.reason || 'позывной уже используется'),
+                    );
                 }
             };
 
@@ -60,17 +62,18 @@ export class NetworkService {
         });
     }
 
-    sendMessage(recipient, content, params) {
+    sendMessage(recipient, content, params, messageType) {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(
-                JSON.stringify({
-                    type: 'message',
-                    id: this.userId,
-                    recipient,
-                    content,
-                    params,
-                }),
-            );
+            const msg = {
+                type: 'message',
+                id: this.userId,
+                recipient,
+                content,
+                params,
+                keyType: this.currentKeyType || 'auto',
+                messageType,
+            };
+            this.ws.send(JSON.stringify(msg));
         }
     }
 
@@ -94,6 +97,12 @@ export class NetworkService {
                     userId: this.userId,
                 }),
             );
+        }
+    }
+
+    finishExchange() {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ type: 'finish', id: this.userId }));
         }
     }
 }

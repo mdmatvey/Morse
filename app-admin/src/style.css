@@ -172,28 +172,10 @@ body {
 }
 
 /* Типы записей */
-.log-entry.connect {
-    border-left: 4px solid var(--accent-success);
-    background-color: rgba(52, 199, 89, 0.05);
-    color: var(--accent-success);
-}
-
-.log-entry.disconnect {
-    border-left: 4px solid var(--accent-error);
-    background-color: rgba(255, 59, 48, 0.05);
-    color: var(--accent-error);
-}
-
-.log-entry.busy {
-    border-left: 4px solid var(--accent-warning);
-    background-color: rgba(245, 124, 0, 0.05);
-    color: var(--accent-warning);
-}
-
-.log-entry.free {
-    border-left: 4px solid var(--text-muted);
-    background-color: rgba(134, 134, 139, 0.05);
-    color: var(--text-muted);
+.log-entry.finished {
+    border-left: 4px solid #6c5ce7; /* фиолетовый акцент */
+    background-color: rgba(108, 92, 231, 0.05);
+    color: #6c5ce7;
 }
 
 /* =============== Блок управления (селектор направлений) =============== */
@@ -227,7 +209,9 @@ body {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     box-shadow: var(--shadow-sm);
-    transition: border-color var(--transition-fast), background var(--transition-fast);
+    transition:
+        border-color var(--transition-fast),
+        background var(--transition-fast);
     appearance: none; /* убрать дефолтный стрелочный значок */
     background-image: url('data:image/svg+xml;charset=UTF-8,<svg width="10" height="6" xmlns="http://www.w3.org/2000/svg"><path d="M0 0l5 6 5-6z" fill="%23777777"/></svg>');
     background-repeat: no-repeat;

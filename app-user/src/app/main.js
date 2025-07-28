@@ -24,12 +24,15 @@ let rightTimer = null;
 let manualKey = 'ArrowDown';
 let awaitingKey = false;
 
+let exchangeFinished = false;
+
 // DOM-элементы
 const loginContainer = document.getElementById('loginContainer');
 const appContainer = document.getElementById('appContainer');
 const roleSelect = document.getElementById('userRole');
 const numberInput = document.getElementById('userNumber');
 const loginButton = document.getElementById('loginButton');
+const finishButton = document.getElementById('finishButton');
 
 const elements = {
     userIdDisplay: document.getElementById('userIdDisplay'),
@@ -207,6 +210,17 @@ async function initApp() {
         'change',
         handleRecipientChange,
     );
+    finishButton.addEventListener('click', () => {
+        if (exchangeFinished) return;
+        exchangeFinished = true;
+
+        // заблокировать дальнейшую отправку
+        sendButton.disabled = true;
+        finishButton.disabled = true;
+        finishButton.textContent = 'Обмен завершён';
+
+        network.finishExchange();
+    });
     updateToneValue();
 
     createInputFields('inputContainer', +elements.groupSelector.value);
@@ -262,6 +276,7 @@ async function initApp() {
 
 // Отправка по кнопке
 function handleSend() {
+    if (exchangeFinished) return;
     const rec = elements.recipientTypeSelector.value;
     if (!rec) {
         alert('Выберите получателя');
@@ -278,7 +293,7 @@ function handleSend() {
         groupPause: +elements.groupPauseInput.value,
         shortZero,
     };
-    network.sendMessage(rec, morse, params);
+    network.sendMessage(rec, morse, params, elements.interfaceMode.value);
 }
 
 // Приём и проигрыш

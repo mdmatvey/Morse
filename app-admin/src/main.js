@@ -38,8 +38,9 @@ directionSelect.addEventListener('change', () => {
 function updateDirectionOptions(dirs) {
     // сохраняем текущее значение
     const current = directionSelect.value;
-    directionSelect.innerHTML = `<option value="">Все</option>` +
-        dirs.map(d => `<option value="${d}">${d}</option>`).join('');
+    directionSelect.innerHTML =
+        `<option value="">Все</option>` +
+        dirs.map((d) => `<option value="${d}">${d}</option>`).join('');
     // восстанавливаем выбор
     if (dirs.includes(current)) {
         directionSelect.value = current;
@@ -57,8 +58,10 @@ function updateStudentList(students) {
     studentsList.innerHTML = students
         .map((student) => {
             let statusText, statusClass;
-
-            if (student.isBusy && student.partner) {
+            if (student.status === 'finished') {
+                statusText = ' (завершил обмен)';
+                statusClass = 'finished';
+            } else if (student.isBusy && student.partner) {
                 statusText = ` (работает с ${student.partner})`;
                 statusClass = 'busy';
             } else if (student.isBusy) {
@@ -68,7 +71,6 @@ function updateStudentList(students) {
                 statusText = ' (свободен)';
                 statusClass = 'free';
             }
-
             return `<li class="${statusClass}">${student.id}${statusText}</li>`;
         })
         .join('');
@@ -89,31 +91,14 @@ function updateLogsList(logs) {
             ? `<li class="log-limit-warning">Показаны только последние ${MAX_LOGS} записей из ${logs.length}</li>`
             : '') +
         trimmedLogs
-            .map((log) => {
-                let logClass;
-                switch (log.event) {
-                    case 'connect':
-                        logClass = 'connect';
-                        break;
-                    case 'disconnect':
-                        logClass = 'disconnect';
-                        break;
-                    case 'busy':
-                        logClass = 'busy';
-                        break;
-                    case 'free':
-                        logClass = 'free';
-                        break;
-                    default:
-                        logClass = '';
-                }
-
-                return `
-                <li class="log-entry ${logClass}">
+            .map(
+                (log) =>
+                    `
+                <li class="log-entry ${log.event}">
                     <span class="message">${log.message}</span>
                     <span class="timestamp">${log.timestamp}</span>
-                </li>`;
-            })
+                </li>`,
+            )
             .join('');
 
     logsList.scrollTop = logsList.scrollHeight;
