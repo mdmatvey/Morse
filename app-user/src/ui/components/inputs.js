@@ -20,7 +20,7 @@ export function createInputFields(containerId, groupCount) {
     const container = document.getElementById(containerId);
     container.innerHTML = '';
 
-    for (let i = 0; i < groupCount; i++) {
+    for (let i = 0; i < groupCount + 1; i++) {
         const input = document.createElement('input');
         input.type = 'text';
         input.placeholder = `Группа ${i + 1}`;
