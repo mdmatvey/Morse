@@ -1,14 +1,16 @@
 export function setupInputHandlers() {
     const inputs = document.querySelectorAll(
-        '.service-fields input, .controls-container input, #operationalInterface textarea',
+        '.operational-fields input, .controls-container input, #serviceInterface textarea',
     );
 
     inputs.forEach((input) => {
         input.addEventListener('input', (event) => {
             let value = event.target.value;
 
+            // всегда верхний регистр
             event.target.value = value.toUpperCase();
 
+            // для числовых полей убираем всё не-цифровое
             if (input.className.indexOf('number') !== -1) {
                 event.target.value = event.target.value.replace(/\D/g, '');
             }
@@ -39,9 +41,9 @@ export function createInputFields(containerId, groupCount) {
 
 export function getInputValues(interfaceMode) {
     const inputsContainer = document.getElementById(
-        interfaceMode === 'service'
-            ? 'serviceInterface'
-            : 'operationalInterface',
+        interfaceMode === 'operational'
+            ? 'operationalInterface'
+            : 'serviceInterface',
     );
 
     return Array.from(inputsContainer.querySelectorAll('.message-input'))

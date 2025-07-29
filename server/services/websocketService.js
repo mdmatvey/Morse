@@ -197,11 +197,11 @@ export function incrementCounts(senderId, recipientId, keyType, messageType) {
     if (!sender || !receiver) return;
 
     switch (messageType) {
-        case 'service':
+        case 'operational':
             sender.sentRadiograms++;
             receiver.receivedRadiograms++;
             break;
-        case 'operational':
+        case 'service':
             sender.sentSignals++;
             receiver.receivedSignals++;
             break;

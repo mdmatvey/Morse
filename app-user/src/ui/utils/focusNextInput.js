@@ -1,5 +1,5 @@
 export function focusNextInput(event, mode) {
-    if (mode !== 'service') return;
+    if (mode !== 'operational') return;
 
     const inputs = document.querySelectorAll('.message-input');
     const currentInput = document.activeElement;

@@ -19,11 +19,8 @@ let userId = '';
 let reconnectInterval = null;
 let leftTimer = null;
 let rightTimer = null;
-
-// Текущий код клавиши для ручного режима
 let manualKey = 'ArrowDown';
 let awaitingKey = false;
-
 let exchangeFinished = false;
 
 // DOM-элементы
@@ -46,9 +43,8 @@ const elements = {
     semiAutoInterface: document.getElementById('semiAutoInterface'),
     manualInterface: document.getElementById('manualInterface'),
     controlsContainer: document.getElementById('controlsContainer'),
-
-    serviceInterface: document.getElementById('serviceInterface'),
     operationalInterface: document.getElementById('operationalInterface'),
+    serviceInterface: document.getElementById('serviceInterface'),
     groupSelector: document.getElementById('groupCount'),
     speedSelector: document.getElementById('speedSelector'),
     toneSelector: document.getElementById('toneSelector'),
@@ -353,9 +349,8 @@ function handleSemiKeyDown(e) {
         groupPause: +elements.groupPauseInput.value,
         shortZero: elements.shortZeroCheckbox.checked,
     };
-
     const sendAndPlay = (symbol) => {
-        network.sendMessage(rec, symbol, params);
+        network.sendMessage(rec, symbol, params, elements.interfaceMode.value);
         morseAudioPlayer.playSequence(
             symbol,
             baseDuration,

@@ -66,8 +66,8 @@
                     >
                         <label for="interfaceMode">Формат обмена:</label>
                         <select id="interfaceMode">
-                            <option value="service">Служебный</option>
                             <option value="operational">Оперативный</option>
+                            <option value="service">Служебный</option>
                         </select>
                     </div>
                 </div>
@@ -75,7 +75,7 @@
 
             <!-- Обмен радиограммами -->
             <div id="exchangeContainer">
-                <div id="serviceInterface">
+                <div id="operationalInterface">
                     <div class="input-fields">
                         <div class="group-count-wrapper label-wrapper">
                             <label for="groupCount">Количество групп:</label>
@@ -85,7 +85,7 @@
                                 <option value="30">30</option>
                             </select>
                         </div>
-                        <div class="service-fields row-1">
+                        <div class="operational-fields row-1">
                             <input
                                 type="text"
                                 maxlength="10"
@@ -152,7 +152,7 @@
                             <span>=</span>
                         </div>
                         <div id="inputContainer"></div>
-                        <div class="service-fields row-3">
+                        <div class="operational-fields row-3">
                             <input
                                 type="text"
                                 maxlength="4"
@@ -163,10 +163,10 @@
                         </div>
                     </div>
                 </div>
-                <div id="operationalInterface" class="hidden">
+                <div id="serviceInterface" class="hidden">
                     <textarea
                         placeholder="Введите сообщение..."
-                        id="operationalInput"
+                        id="serviceInput"
                         class="message-input"
                     ></textarea>
                 </div>
@@ -260,12 +260,8 @@
                         <label for="shortZero">Короткий ноль:</label>
                         <input type="checkbox" id="shortZero" />
                     </div>
-                    <div class="control-column">
-                        <button id="sendButton">Отправить радиограмму</button>
-                    </div>
-                    <div class="control-column">
-                        <button id="finishButton">Завершить обмен</button>
-                    </div>
+                    <button id="sendButton">Отправить радиограмму</button>
+                    <button id="finishButton">Завершить обмен</button>
                 </div>
             </div>
         </div>
