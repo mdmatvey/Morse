@@ -45,6 +45,7 @@ const elements = {
     controlsContainer: document.getElementById('controlsContainer'),
     operationalInterface: document.getElementById('operationalInterface'),
     serviceInterface: document.getElementById('serviceInterface'),
+    serviceInput: document.getElementById('serviceInput'),
     groupSelector: document.getElementById('groupCount'),
     speedSelector: document.getElementById('speedSelector'),
     toneSelector: document.getElementById('toneSelector'),
@@ -334,6 +335,10 @@ function toggleExchangeInterface() {
         elements.operationalInterface.classList.remove('hidden');
     }
 }
+
+elements.serviceInput.addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/[^а-яё0-9 ]/gi, '');
+});
 
 // Полуавто клавиши
 function handleSemiKeyDown(e) {
