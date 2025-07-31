@@ -12,14 +12,17 @@
         "assets": [
             "./node_modules/**/*",
             "temp_dist/controllers/**/*",
-            "temp_dist/services/**/*"
+            "temp_dist/services/**/*",
+            "public/**/*"
         ]
     },
     "scripts": {
         "start": "source ~/.nvm/nvm.sh && nvm use 18 && node --watch index.js",
         "build:babel": "babel . --out-dir temp_dist",
         "build:pkg": "pkg .",
-        "build": "source ~/.nvm/nvm.sh && nvm use 16 && npm run build:babel && npm run build:pkg && rm -rf temp_dist"
+        "prebuild": "source ~/.nvm/nvm.sh && nvm use 16 && npm run build:babel",
+        "build": "npm run build:pkg",
+        "postbuild": "cp ./public/manual.pdf ../build/ && rm -rf temp_dist"
     },
     "dependencies": {
         "ws": "^8.18.0"
