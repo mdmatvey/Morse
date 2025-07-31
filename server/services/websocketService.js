@@ -53,7 +53,8 @@ function addLogEntry(event, userId, details = '') {
             message = `Попытка повторного подключения под позывным ${userId}`;
             break;
         case 'finished':
-            message = `${userId}: завершил` + (details ? ` — ${details}` : '');
+            message =
+                `${userId}: завершил обмен` + (details ? ` — ${details}` : '');
         default:
             break;
     }
@@ -216,7 +217,7 @@ export function finishExchange(userId) {
     if (!user) return;
     user.status = 'finished';
 
-    const details = `пер. рдг: ${user.sentRadiograms}, прин. рдг.: ${user.receivedRadiograms}, пер сигн.: ${user.sentSignals}, прин сигн.: ${user.receivedSignals}`;
+    const details = `пер. рдг: ${user.sentRadiograms}, прм. рдг.: ${user.receivedRadiograms}, пер сигн.: ${user.sentSignals}, прм сигн.: ${user.receivedSignals}`;
     addLogEntry('finished', userId, details);
     broadcastStudentList();
     sendConnectionLogsToAdmins();
