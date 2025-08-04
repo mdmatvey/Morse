@@ -209,6 +209,10 @@ async function initApp() {
     );
     finishButton.addEventListener('click', () => {
         if (exchangeFinished) return;
+
+        network.setFree();
+        network.finishExchange();
+
         exchangeFinished = true;
 
         // заблокировать дальнейшую отправку
@@ -216,7 +220,9 @@ async function initApp() {
         finishButton.disabled = true;
         finishButton.textContent = 'Обмен завершён';
 
-        network.finishExchange();
+        // заблокировать выбор получателя
+        elements.recipientTypeSelector.value = '';
+        elements.recipientTypeSelector.disabled = true;
     });
     updateToneValue();
 
