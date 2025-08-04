@@ -1,4 +1,3 @@
-// /server/index.js
 import http from 'http';
 import { WebSocketServer } from 'ws';
 import { handleConnection } from './controllers/signalController.js';
