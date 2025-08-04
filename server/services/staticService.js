@@ -36,8 +36,8 @@ export function serveStatic(req, res) {
     const host = req.headers.host.split(':')[0];
 
     // отдаём PDF инструкцию по /instr
-    if (req.url === '/manual') {
-        const pdfPath = path.resolve(staticBasePath, 'manual.pdf');
+    if (req.url === '/guide') {
+        const pdfPath = path.resolve(staticBasePath, 'guide.pdf');
         fs.readFile(pdfPath, (err, data) => {
             if (err) {
                 res.writeHead(404, { 'Content-Type': 'text/plain' });

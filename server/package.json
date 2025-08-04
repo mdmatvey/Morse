@@ -22,7 +22,7 @@
         "build:pkg": "pkg .",
         "prebuild": "source ~/.nvm/nvm.sh && nvm use 16 && npm run build:babel",
         "build": "npm run build:pkg",
-        "postbuild": "cp ./public/manual.pdf ../build/ && rm -rf temp_dist"
+        "postbuild": "cp ./public/guide.pdf ../build/ && rm -rf temp_dist"
     },
     "dependencies": {
         "ws": "^8.18.0"
