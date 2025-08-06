@@ -50,14 +50,14 @@
                             >не подключено</span
                         >
                     </p>
-                    <a
-                        href="/guide"
-                        target="_blank"
-                        id="manualButton"
-                        class="instruction-button"
-                    >
-                        Инструкция
-                    </a>
+                    <div class="label-wrapper">
+                        <label for="themeSelector">Тема:</label>
+                        <select id="themeSelector">
+                            <option value="light">Светлая</option>
+                            <option value="dark">Тёмная</option>
+                            <option value="contrast">Контрастная</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="second-row-container">
                     <div class="label-wrapper">
@@ -78,6 +78,14 @@
                             <option value="service">Служебный</option>
                         </select>
                     </div>
+                    <a
+                        href="/guide"
+                        target="_blank"
+                        id="manualButton"
+                        class="instruction-button"
+                    >
+                        Инструкция
+                    </a>
                 </div>
             </div>
 
