@@ -10,6 +10,36 @@ import { focusNextInput } from '../ui/utils/focusNextInput.js';
 import { textToMorse } from '../core/morse/converter.js';
 import { SPEED_CONFIG } from '../core/morse/constants.js';
 
+// Управление темой
+const themeKey = 'theme';
+const themeSelector = document.getElementById('themeSelector');
+
+function applyTheme(theme) {
+    if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+    } else if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else if (theme === 'contrast') {
+        document.documentElement.setAttribute('data-theme', 'contrast');
+    }
+}
+
+(function initTheme() {
+    // системная тема
+    const system = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+    // сохранённая или system
+    const saved = localStorage.getItem(themeKey) || system;
+    applyTheme(saved);
+    themeSelector.value = saved;
+    themeSelector.addEventListener('change', (e) => {
+        const t = e.target.value;
+        localStorage.setItem(themeKey, t);
+        applyTheme(t);
+    });
+})();
+
 const RECONNECT_INTERVAL_MS = 5000;
 const network = new NetworkService();
 const morseAudioPlayer = new MorseAudioPlayer();
@@ -346,7 +376,7 @@ elements.serviceInput.addEventListener('input', (e) => {
     e.target.value = e.target.value.replace(/[^а-яё0-9 ]/gi, '');
 });
 
-// Полуавто клавиши
+// Полуавтоматические клавиши
 function handleSemiKeyDown(e) {
     if (elements.keyType.value !== 'semi') return;
     const rec = elements.recipientTypeSelector.value;
@@ -372,7 +402,6 @@ function handleSemiKeyDown(e) {
     };
 
     if (e.code === 'ArrowLeft') {
-        // Прекратить dash, если он активен
         if (rightTimer) {
             clearInterval(rightTimer);
             rightTimer = null;
@@ -386,7 +415,6 @@ function handleSemiKeyDown(e) {
     }
 
     if (e.code === 'ArrowRight') {
-        // Прекратить dot, если он активен
         if (leftTimer) {
             clearInterval(leftTimer);
             leftTimer = null;
@@ -446,6 +474,6 @@ function handleManualKeyUp(e) {
     manualActive = false;
     const rec = elements.recipientTypeSelector.value;
     if (!rec) return;
-    network.sendMessage(rec, 'stop', {}); // params можно не передавать
+    network.sendMessage(rec, 'stop', {});
     morseAudioPlayer.stopContinuous();
 }
