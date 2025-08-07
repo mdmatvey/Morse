@@ -379,6 +379,7 @@ elements.serviceInput.addEventListener('input', (e) => {
 // Полуавтоматические клавиши
 function handleSemiKeyDown(e) {
     if (elements.keyType.value !== 'semi') return;
+    e.preventDefault();
     const rec = elements.recipientTypeSelector.value;
     if (!rec) return;
     const interval = +elements.semiInterval.value || 300;
@@ -443,6 +444,7 @@ function handleSemiKeyUp(e) {
 
 // Ручной режим по выбранной клавише
 let manualActive = false;
+
 function handleManualKeyDown(e) {
     if (
         elements.keyType.value !== 'manual' ||
@@ -450,9 +452,15 @@ function handleManualKeyDown(e) {
         manualActive
     )
         return;
-    manualActive = true;
+
     const rec = elements.recipientTypeSelector.value;
     if (!rec) return;
+
+    e.preventDefault();
+
+    manualActive = true;
+    elements.manualKeyDisplay.classList.add('active');
+
     const speed = +elements.speedSelector.value;
     const params = {
         baseDuration: SPEED_CONFIG.BASE_UNIT / speed,
@@ -461,9 +469,11 @@ function handleManualKeyDown(e) {
         groupPause: +elements.groupPauseInput.value,
         shortZero: elements.shortZeroCheckbox.checked,
     };
+
     network.sendMessage(rec, 'start', params);
     morseAudioPlayer.startContinuous(params.baseDuration, params.tone);
 }
+
 function handleManualKeyUp(e) {
     if (
         elements.keyType.value !== 'manual' ||
@@ -471,9 +481,13 @@ function handleManualKeyUp(e) {
         !manualActive
     )
         return;
+
     manualActive = false;
+    elements.manualKeyDisplay.classList.remove('active');
+
     const rec = elements.recipientTypeSelector.value;
     if (!rec) return;
+
     network.sendMessage(rec, 'stop', {});
     morseAudioPlayer.stopContinuous();
 }
