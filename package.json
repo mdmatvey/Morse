@@ -12,7 +12,7 @@
         "start:app-user": "WS_SERVER=localhost:1337 npm run dev --workspace=app-user",
         "start:app-admin": "WS_SERVER=localhost:1337 npm run dev --workspace=app-admin",
         "start:server": "FORCE_LOCALHOST=true npm start --workspace=server",
-        "build": "npm run build --workspaces",
+        "build": "rm -rf ./build && npm run build --workspaces",
         "format": "prettier --write ."
     },
     "devDependencies": {
