@@ -310,33 +310,117 @@ async function initApp() {
 // Отправка по кнопке
 function handleSend() {
     if (exchangeFinished) return;
+
     const rec = elements.recipientTypeSelector.value;
     if (!rec) {
         alert('Выберите получателя');
         return;
     }
-    const txt = getInputValues(elements.interfaceMode.value);
+
+    const interfaceMode = elements.interfaceMode.value;
     const shortZero = elements.shortZeroCheckbox.checked;
-    const morse = textToMorse(txt, shortZero);
-    const speed = +elements.speedSelector.value;
+    const tone = +elements.toneSelector.value;
+    const letterPause = +elements.letterPauseInput.value;
+    const groupPause = +elements.groupPauseInput.value;
+    const speed = +elements.speedSelector.value; // скорость для ТЕЛА
+
+    // params всегда содержит базовую длительность для ТЕЛА
     const params = {
         baseDuration: SPEED_CONFIG.BASE_UNIT / speed,
-        tone: +elements.toneSelector.value,
-        letterPause: +elements.letterPauseInput.value,
-        groupPause: +elements.groupPauseInput.value,
+        tone,
+        letterPause,
+        groupPause,
         shortZero,
     };
-    network.sendMessage(rec, morse, params, elements.interfaceMode.value);
+
+    if (interfaceMode === 'operational') {
+        const opInterface = document.getElementById('operationalInterface');
+        if (!opInterface) {
+            alert('Ошибка: не найден operationalInterface');
+            return;
+        }
+
+        // конкретные контейнеры заголовков
+        const header1Container =
+            opInterface.querySelector('.operational-fields.row-1') ||
+            opInterface.querySelector('.operational-fields');
+        const header2Container = opInterface.querySelector(
+            '.operational-fields.row-3',
+        );
+
+        const header1Inputs = header1Container
+            ? Array.from(header1Container.querySelectorAll('.message-input'))
+            : [];
+        const header2Inputs = header2Container
+            ? Array.from(header2Container.querySelectorAll('.message-input'))
+            : [];
+
+        const allInputs = Array.from(
+            opInterface.querySelectorAll('.message-input'),
+        );
+
+        // тело — все inputs в operationalInterface, которые не в header1 и не в header2
+        const bodyInputs = allInputs.filter(
+            (inp) =>
+                !header1Inputs.includes(inp) && !header2Inputs.includes(inp),
+        );
+
+        const header1Text = header1Inputs
+            .map((i) => i.value.trim())
+            .filter(Boolean)
+            .join(' ');
+        const bodyText = bodyInputs
+            .map((i) => i.value.trim())
+            .filter(Boolean)
+            .join(' ');
+        const header2Text = header2Inputs
+            .map((i) => i.value.trim())
+            .filter(Boolean)
+            .join(' ');
+
+        const header1Morse = header1Text
+            ? textToMorse(header1Text, shortZero)
+            : '';
+        const bodyMorse = bodyText ? textToMorse(bodyText, shortZero) : '';
+        const header2Morse = header2Text
+            ? textToMorse(header2Text, shortZero)
+            : '';
+
+        const content = {
+            header1: header1Morse,
+            body: bodyMorse,
+            header2: header2Morse,
+            isOperational: true,
+        };
+
+        network.sendMessage(rec, content, params, interfaceMode);
+    } else {
+        // служебный интерфейс — старое поведение (одна строка)
+        const txt = getInputValues(interfaceMode);
+        const morse = textToMorse(txt, shortZero);
+        network.sendMessage(rec, morse, params, interfaceMode);
+    }
 }
 
 // Приём и проигрыш
 function handleIncomingMessage(data) {
-    const { baseDuration, tone, letterPause, groupPause } = data.params;
+    const params = data.params || {};
+    const baseDuration = params.baseDuration || 0; // базовая длительность для ТЕЛА
+    const tone = params.tone || 700;
+    const letterPause = params.letterPause || 0;
+    const groupPause = params.groupPause || 0;
+
     if (data.content === 'start') {
         morseAudioPlayer.startContinuous(baseDuration, tone);
-    } else if (data.content === 'stop') {
+        return;
+    }
+    if (data.content === 'stop') {
         morseAudioPlayer.stopContinuous();
-    } else {
+        return;
+    }
+
+    // старый режим: простая строка
+    if (typeof data.content === 'string') {
         morseAudioPlayer.playSequence(
             data.content,
             baseDuration,
@@ -344,6 +428,125 @@ function handleIncomingMessage(data) {
             letterPause,
             groupPause,
         );
+        return;
+    }
+
+    // новый режим: объект с header1/body/header2 помеченный isOperational
+    if (data.content && typeof data.content === 'object') {
+        const isOperational = !!data.content.isOperational;
+        const header1 = data.content.header1 || '';
+        const body = data.content.body || '';
+        const header2 = data.content.header2 || '';
+
+        if (isOperational) {
+            // headerBase — для заголовков (в 2 раза медленнее)
+            const headerBase = baseDuration * 2;
+
+            // будем накапливать offset (ms) перед запуском следующей части
+            let offset = 0;
+
+            // header1
+            if (header1) {
+                morseAudioPlayer.playSequence(
+                    header1,
+                    headerBase,
+                    tone,
+                    letterPause,
+                    groupPause,
+                );
+                // длительность заголовка + меж-групповая пауза после него
+                let header1Ms = morseAudioPlayer.calcSequenceDuration(
+                    header1,
+                    headerBase,
+                    letterPause,
+                    groupPause,
+                );
+                header1Ms += groupPause;
+                offset += header1Ms;
+            }
+
+            // body
+            if (body) {
+                // запланировать запуск тела через offset
+                setTimeout(() => {
+                    morseAudioPlayer.playSequence(
+                        body,
+                        baseDuration,
+                        tone,
+                        letterPause,
+                        groupPause,
+                    );
+                }, offset);
+
+                // прибавляем длительность тела + паузу после тела (чтобы header2 не стартовал сразу)
+                let bodyMs = morseAudioPlayer.calcSequenceDuration(
+                    body,
+                    baseDuration,
+                    letterPause,
+                    groupPause,
+                );
+                bodyMs += groupPause;
+                offset += bodyMs;
+            }
+
+            // header2 (после тела)
+            if (header2) {
+                setTimeout(() => {
+                    morseAudioPlayer.playSequence(
+                        header2,
+                        headerBase,
+                        tone,
+                        letterPause,
+                        groupPause,
+                    );
+                }, offset);
+            }
+
+            return;
+        }
+
+        // fallback: если пришёл объект, но без isOperational — старая обработка
+        // если есть header/body — попробуем проиграть header, затем body (как раньше)
+        if (data.content.header || data.content.body) {
+            const header = data.content.header || '';
+            const body = data.content.body || '';
+            if (header) {
+                const headerBase = baseDuration * 2;
+                morseAudioPlayer.playSequence(
+                    header,
+                    headerBase,
+                    tone,
+                    letterPause,
+                    groupPause,
+                );
+                let headerMs = morseAudioPlayer.calcSequenceDuration(
+                    header,
+                    headerBase,
+                    letterPause,
+                    groupPause,
+                );
+                headerMs += groupPause;
+                if (body) {
+                    setTimeout(() => {
+                        morseAudioPlayer.playSequence(
+                            body,
+                            baseDuration,
+                            tone,
+                            letterPause,
+                            groupPause,
+                        );
+                    }, headerMs);
+                }
+            } else if (body) {
+                morseAudioPlayer.playSequence(
+                    body,
+                    baseDuration,
+                    tone,
+                    letterPause,
+                    groupPause,
+                );
+            }
+        }
     }
 }
 

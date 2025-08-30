@@ -45,6 +45,29 @@ export class MorseAudioPlayer {
         this._oscillator = null;
     }
 
+    // возвращает общую длительность (ms) последовательности с учётом baseDuration и пауз
+    calcSequenceDuration(sequence, baseDuration, letterPause, groupPause) {
+        let total = 0;
+        const durations = {
+            '.': baseDuration,
+            '-': baseDuration * SPEED_CONFIG.DASH_MULTIPLIER,
+        };
+
+        const arr = sequence.split('');
+        arr.forEach((symbol, idx) => {
+            const dur = durations[symbol] || 0;
+            if (dur > 0) {
+                // сигнал + межэлементная пауза (1 unit)
+                total += dur + baseDuration;
+            }
+            if (symbol === ' ') {
+                total += arr[idx + 1] === ' ' ? groupPause : letterPause;
+            }
+        });
+
+        return total;
+    }
+
     _playSignal(duration, tone) {
         const ctx = this._getAudioContext();
         const osc = ctx.createOscillator();
